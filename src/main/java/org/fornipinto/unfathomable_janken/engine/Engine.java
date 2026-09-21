@@ -115,8 +115,10 @@ public final class Engine implements AutoCloseable, Context {
     }
 
     private void refreshUI() {
+        final var size = terminal.getSize();
         final Component rootComponent = new Root(this);
-        rootComponent.layout(Constraints.tight(terminal.getWidth(), terminal.getHeight()));
+        final var constraints = Constraints.tight(size.getColumns(), size.getRows());
+        rootComponent.layout(constraints);
 
         final Canvas rootCanvas = new Canvas(rootComponent);
         rootComponent.draw(rootCanvas);
@@ -126,7 +128,7 @@ public final class Engine implements AutoCloseable, Context {
     }
 
     private void updateTerminalSize() {
-        display.resize(terminal.getHeight(), terminal.getWidth());
+        display.resize(terminal.getSize());
         display.clear();
     }
 
@@ -165,10 +167,7 @@ public final class Engine implements AutoCloseable, Context {
 
     @Override
     public Size size() {
-        return new Size(
-            terminal.getWidth(),
-            terminal.getHeight()
-        );
+        return new Size(terminal.getSize().getColumns(), terminal.getSize().getRows());
     }
 
     @Override

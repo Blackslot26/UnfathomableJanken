@@ -5,6 +5,7 @@ import org.jline.keymap.KeyMap;
 import org.jline.terminal.Terminal;
 import org.jline.utils.NonBlockingReader;
 
+import java.io.IOError;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,11 +35,15 @@ final class InputThread extends Thread {
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            final Key key = bindingReader.readBinding(keyMap, null, false);
+            try {
+                final Key key = bindingReader.readBinding(keyMap, null, false);
 
-            if (key != null) {
-                lastKey.set(key);
-                IO.println("Key pressed: " + key);
+                if (key != null) {
+                    lastKey.set(key);
+                    IO.println("Key pressed: " + key);
+                }
+            } catch (IOError | Exception e) {
+                break;
             }
         }
     }
