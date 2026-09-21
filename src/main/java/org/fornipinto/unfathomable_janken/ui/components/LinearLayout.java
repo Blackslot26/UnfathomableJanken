@@ -1,0 +1,208 @@
+package org.fornipinto.unfathomable_janken.ui.components;
+
+import org.fornipinto.unfathomable_janken.core.Size;
+import org.fornipinto.unfathomable_janken.ui.core.*;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+/**
+ * A general-purpose layout component that arranges its children linearly,
+ * either horizontally (like a Row) or vertically (like a Column).
+ * <p>
+ * Use {@link Row} or {@link Column} for convenience.
+ */
+public class LinearLayout extends Component {
+    protected final Component[] children;
+    protected final Orientation orientation;
+    private MainAxisSize mainAxisSize = MainAxisSize.MAX;
+    private CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.START;
+
+    /**
+     * Constructs a LinearLayout with the specified orientation and items.
+     *
+     * @param orientation The orientation (horizontal or vertical).
+     * @param children    The children as Fixed or Flexible items.
+     */
+    public LinearLayout(Orientation orientation, Component... children) {
+        this.orientation = Objects.requireNonNull(orientation);
+        this.children = Arrays.stream(Objects.requireNonNull(children)).filter(Objects::nonNull).toArray(Component[]::new);
+    }
+
+    /**
+     * Sets how much space the layout should occupy in the main axis.
+     *
+     * @param mainAxisSize The main axis size to set.
+     * @return This layout instance.
+     */
+    public LinearLayout mainAxisSize(MainAxisSize mainAxisSize) {
+        this.mainAxisSize = Objects.requireNonNullElse(mainAxisSize, MainAxisSize.MAX);
+        return this;
+    }
+
+    /**
+     * Sets the cross-axis alignment for this layout.
+     *
+     * @param crossAxisAlignment The cross-axis alignment to set.
+     * @return This layout instance.
+     */
+    public LinearLayout crossAxisAlignment(CrossAxisAlignment crossAxisAlignment) {
+        this.crossAxisAlignment = Objects.requireNonNullElse(crossAxisAlignment, CrossAxisAlignment.START);
+        return this;
+    }
+
+    @Override
+    public void layout(Constraints constraints) {
+        if (children.length == 0) {
+            size = constraints.smallest();
+            return;
+        }
+
+        size = constraints.biggest();
+        int availableSpace = mainAxisLength();
+        int mainAxisLength = 0;
+        int crossAxisLength = 0;
+        int totalFlex = 0;
+
+        for (Component child : children) {
+            final Object data = child.data();
+
+            if (data instanceof FlexibleData(int flex)) {
+                totalFlex += flex;
+            } else {
+                final Constraints childConstraints = switch (orientation) {
+                    case HORIZONTAL -> new Constraints(
+                        0,
+                        availableSpace,
+                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
+                        crossAxisLength()
+                    );
+                    case VERTICAL -> new Constraints(
+                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
+                        crossAxisLength(),
+                        0,
+                        availableSpace
+                    );
+                };
+
+                child.layout(childConstraints);
+
+                availableSpace = availableSpace - getChildMainAxisLength(child);
+                mainAxisLength = mainAxisLength + getChildMainAxisLength(child);
+                crossAxisLength = Math.max(crossAxisLength, getChildCrossAxisLength(child));
+            }
+        }
+
+        for (Component child : children) {
+            final Object data = child.data();
+
+            if (data instanceof FlexibleData(int flex)) {
+                final int length = (int) ((flex / (float) totalFlex) * availableSpace);
+
+                final Constraints childConstraints = switch (orientation) {
+                    case HORIZONTAL -> new Constraints(
+                        length,
+                        length,
+                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
+                        crossAxisLength()
+                    );
+                    case VERTICAL -> new Constraints(
+                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
+                        crossAxisLength(),
+                        length,
+                        length
+                    );
+                };
+
+                child.layout(childConstraints);
+
+                mainAxisLength = mainAxisLength + getChildMainAxisLength(child);
+            }
+        }
+
+        final Size naturalSize = switch (mainAxisSize) {
+            case MIN -> switch (orientation) {
+                case HORIZONTAL -> new Size(mainAxisLength, crossAxisLength);
+                case VERTICAL -> new Size(crossAxisLength, mainAxisLength);
+            };
+            case MAX -> switch (orientation) {
+                case HORIZONTAL -> new Size(constraints.maxWidth(), crossAxisLength);
+                case VERTICAL -> new Size(crossAxisLength, constraints.maxHeight());
+            };
+        };
+
+        size = constraints.constrain(naturalSize);
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+        if (children.length == 0) return;
+
+        int mainAxisPosition = 0;
+
+        for (Component child : children) {
+            final int crossAxisPosition = switch (crossAxisAlignment) {
+                case START, STRETCH -> 0;
+                case CENTER -> crossAxisLength() / 2 - getChildCrossAxisLength(child) / 2;
+                case END -> crossAxisLength() - getChildCrossAxisLength(child);
+            };
+
+            switch (orientation) {
+                case HORIZONTAL -> {
+                    canvas.draw(child, mainAxisPosition, crossAxisPosition);
+                    mainAxisPosition += child.size().width();
+                }
+                case VERTICAL -> {
+                    canvas.draw(child, crossAxisPosition, mainAxisPosition);
+                    mainAxisPosition += child.size().height();
+                }
+            }
+        }
+    }
+
+    private int mainAxisLength() {
+        return switch (orientation) {
+            case HORIZONTAL -> size.width();
+            case VERTICAL -> size.height();
+        };
+    }
+
+    private int crossAxisLength() {
+        return switch (orientation) {
+            case HORIZONTAL -> size.height();
+            case VERTICAL -> size.width();
+        };
+    }
+
+    private int getChildMainAxisLength(Component component) {
+        return switch (orientation) {
+            case HORIZONTAL -> component.size().width();
+            case VERTICAL -> component.size().height();
+        };
+    }
+
+    private int getChildCrossAxisLength(Component component) {
+        return switch (orientation) {
+            case HORIZONTAL -> component.size().height();
+            case VERTICAL -> component.size().width();
+        };
+    }
+
+    /**
+     * The orientation of the layout.
+     * <p>
+     * Horizontal layouts arrange children in a row, while vertical layouts arrange children in a column.
+     */
+    public enum Orientation {
+        /**
+         * Horizontal orientation (like a Row).
+         */
+        HORIZONTAL,
+
+        /**
+         * Vertical orientation (like a Column).
+         */
+        VERTICAL
+    }
+}
+
