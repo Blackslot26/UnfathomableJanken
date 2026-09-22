@@ -2,7 +2,7 @@ package org.fornipinto.unfathomable_janken.game.scenes;
 
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
-import org.fornipinto.unfathomable_janken.game.Player;
+import org.fornipinto.unfathomable_janken.game.player.Player;
 import org.fornipinto.unfathomable_janken.ui.components.*;
 import org.fornipinto.unfathomable_janken.ui.core.Border;
 import org.fornipinto.unfathomable_janken.ui.core.Component;

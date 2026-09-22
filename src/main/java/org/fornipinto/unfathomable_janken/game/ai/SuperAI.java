@@ -1,4 +1,7 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.ai;
+
+import org.fornipinto.unfathomable_janken.game.Game;
+import org.fornipinto.unfathomable_janken.game.element.Element;
 
 /**
  * An advanced {@link AI} implementation utilizing deeper game tree analysis or optimal predictive

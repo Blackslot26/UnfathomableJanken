@@ -1,5 +1,6 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.player;
 
+import org.fornipinto.unfathomable_janken.game.ai.AI;
 import org.yaml.snakeyaml.*;
 
 import java.io.IOException;

@@ -1,5 +1,11 @@
 package org.fornipinto.unfathomable_janken.game;
 
+import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
+import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
+import org.fornipinto.unfathomable_janken.game.player.Player;
+
+import java.util.Objects;
+
 /**
  * Core game class coordinating the players, turn state, and overall game execution.
  */
@@ -15,7 +21,7 @@ public class Game {
      * @param mainPlayer The main human player participating in this game.
      */
     public Game(HumanPlayer mainPlayer) {
-        this.mainPlayer = mainPlayer;
+        this.mainPlayer = Objects.requireNonNull(mainPlayer);
         this.enemyPlayer = new AIPlayer();
         this.currentPlayer = mainPlayer;
     }

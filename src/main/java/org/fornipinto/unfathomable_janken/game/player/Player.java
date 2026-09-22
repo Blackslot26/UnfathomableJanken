@@ -1,4 +1,6 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.player;
+
+import org.fornipinto.unfathomable_janken.game.element.Element;
 
 import java.util.List;
 

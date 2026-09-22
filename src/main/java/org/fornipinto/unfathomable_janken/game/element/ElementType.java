@@ -1,4 +1,4 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.element;
 
 /**
  * Interface representing the elemental type of an {@link Element} and defining the double-dispatch

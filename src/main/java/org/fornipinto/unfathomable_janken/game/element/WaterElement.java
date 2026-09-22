@@ -1,13 +1,13 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.element;
 
 /**
- * Concrete implementation of {@link ElementType} representing the Earth element.
+ * Concrete implementation of {@link ElementType} representing the Water element.
  */
-public class EarthElement implements ElementType {
+public class WaterElement implements ElementType {
     /**
-     * Constructs a new {@link EarthElement}.
+     * Constructs a new {@link WaterElement}.
      */
-    public EarthElement() {}
+    public WaterElement() {}
 
     @Override
     public void damageFire(Element element) {

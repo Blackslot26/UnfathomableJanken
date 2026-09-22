@@ -4,7 +4,7 @@ import org.jline.terminal.KeyEvent;
 import org.fornipinto.unfathomable_janken.engine.Engine;
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
-import org.fornipinto.unfathomable_janken.game.HumanPlayer;
+import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
 import org.fornipinto.unfathomable_janken.ui.components.*;
 import org.fornipinto.unfathomable_janken.ui.core.Alignment;
 import org.fornipinto.unfathomable_janken.ui.core.Border;

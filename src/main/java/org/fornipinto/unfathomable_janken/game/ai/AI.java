@@ -1,4 +1,8 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.ai;
+
+import org.fornipinto.unfathomable_janken.game.Game;
+import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
 
 /**
  * Interface representing an artificial intelligence strategy for making tactical decisions in the game.

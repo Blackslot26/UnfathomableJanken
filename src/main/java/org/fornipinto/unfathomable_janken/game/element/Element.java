@@ -1,4 +1,6 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.element;
+
+import org.fornipinto.unfathomable_janken.game.player.Player;
 
 /**
  * Represents an elemental entity possessed by a {@link Player}.

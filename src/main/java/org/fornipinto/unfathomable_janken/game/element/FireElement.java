@@ -1,4 +1,4 @@
-package org.fornipinto.unfathomable_janken.game;
+package org.fornipinto.unfathomable_janken.game.element;
 
 /**
  * Concrete implementation of {@link ElementType} representing the Fire element.
