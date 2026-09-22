@@ -7,20 +7,26 @@ public class FireElement implements ElementType {
     /**
      * Constructs a new {@link FireElement}.
      */
-    public FireElement() {}
-
-    @Override
-    public void damageFire(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public FireElement() {
     }
 
     @Override
-    public void damageWater(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int getDamaged(ElementType elementType) {
+        return elementType.damageFire();
     }
 
     @Override
-    public void damageEarth(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int damageFire() {
+        return 50;
+    }
+
+    @Override
+    public int damageWater() {
+        return 100;
+    }
+
+    @Override
+    public int damageEarth() {
+        return 10;
     }
 }

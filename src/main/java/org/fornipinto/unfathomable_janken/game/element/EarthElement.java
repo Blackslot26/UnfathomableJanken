@@ -7,20 +7,26 @@ public class EarthElement implements ElementType {
     /**
      * Constructs a new {@link EarthElement}.
      */
-    public EarthElement() {}
-
-    @Override
-    public void damageFire(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public EarthElement() {
     }
 
     @Override
-    public void damageWater(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int getDamaged(ElementType elementType) {
+        return elementType.damageEarth();
     }
 
     @Override
-    public void damageEarth(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int damageFire() {
+        return 100;
+    }
+
+    @Override
+    public int damageWater() {
+        return 10;
+    }
+
+    @Override
+    public int damageEarth() {
+        return 50;
     }
 }

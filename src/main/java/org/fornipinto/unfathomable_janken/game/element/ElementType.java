@@ -2,29 +2,34 @@ package org.fornipinto.unfathomable_janken.game.element;
 
 /**
  * Interface representing the elemental type of an {@link Element} and defining the double-dispatch
- * mechanism for elemental damage calculations and combat interactions.
- * <p>
- * Implementations follow a rock-paper-scissors (Janken) dynamic between Fire, Water, and Earth elements.
+ * mechanism for elemental damage calculations.
  */
 public interface ElementType {
-    /**
-     * Applies damage or combat effects when interacting against a fire element.
-     *
-     * @param element The target or interacting {@link Element} instance.
-     */
-    void damageFire(Element element);
+    /// Compute the damage inflicted on this element type by another element type.
+    ///
+    /// @param elementType The opposing {@link ElementType} to compute damage against.
+    ///
+    /// @return The damage value inflicted on this element type by the opposing element type.
+    int getDamaged(ElementType elementType);
 
     /**
-     * Applies damage or combat effects when interacting against a water element.
+     * Computes damage against a fire element.
      *
-     * @param element The target or interacting {@link Element} instance.
+     * @return The damage value inflicted on a fire element.
      */
-    void damageWater(Element element);
+    int damageFire();
 
     /**
-     * Applies damage or combat effects when interacting against an earth element.
+     * Computes damage against a water element.
      *
-     * @param element The target or interacting {@link Element} instance.
+     * @return The damage value inflicted on a water element.
      */
-    void damageEarth(Element element);
+    int damageWater();
+
+    /**
+     * Computes damage against an earth element.
+     *
+     * @return The damage value inflicted on an earth element.
+     */
+    int damageEarth();
 }

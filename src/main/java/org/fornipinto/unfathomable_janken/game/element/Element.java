@@ -2,20 +2,26 @@ package org.fornipinto.unfathomable_janken.game.element;
 
 import org.fornipinto.unfathomable_janken.game.player.Player;
 
+import java.util.Objects;
+
 /**
  * Represents an elemental entity possessed by a {@link Player}.
  * <p>
  * An element holds an energy value and is associated with a specific {@link ElementType} that determines
  * its combat interactions. An element remains active as long as it has positive energy remaining.
  */
-public class Element {
-    private int energy;
-    private ElementType type;
+public final class Element {
+    private int energy = 100;
+    private final ElementType type;
 
     /**
      * Constructs a new {@link Element}.
+     *
+     * @param type The {@link ElementType} associated with this element.
      */
-    public Element() {}
+    public Element(ElementType type) {
+        this.type = type;
+    }
 
     /**
      * Returns the current energy level of this element.
@@ -24,7 +30,7 @@ public class Element {
      * @throws UnsupportedOperationException If this method is not implemented.
      */
     public int getEnergy() {
-        throw new UnsupportedOperationException("Not implemented");
+        return this.energy;
     }
 
     /**
@@ -34,7 +40,7 @@ public class Element {
      * @throws UnsupportedOperationException If this method is not implemented.
      */
     public boolean isActive() {
-        throw new UnsupportedOperationException("Not implemented");
+        return this.energy > 0;
     }
 
     /**
@@ -44,6 +50,25 @@ public class Element {
      * @throws UnsupportedOperationException If this method is not implemented.
      */
     public void getDamaged(int damage) {
-        throw new UnsupportedOperationException("Not implemented");
+        if (damage <= 0) {
+            throw new IllegalArgumentException("Damage must be a positive integer");
+        }
+
+        this.energy = this.energy - damage;
+    }
+
+    /**
+     * Returns the type of this element.
+     *
+     * @return The {@link ElementType} associated with this element.
+     */
+    public ElementType getType() {
+        return this.type;
+    }
+
+    public void attack(Element other) {
+        Objects.requireNonNull(other);
+
+        final var damage = other.getType().getDamaged(this.type);
     }
 }

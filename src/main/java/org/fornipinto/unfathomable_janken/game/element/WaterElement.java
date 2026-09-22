@@ -10,17 +10,22 @@ public class WaterElement implements ElementType {
     public WaterElement() {}
 
     @Override
-    public void damageFire(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int getDamaged(ElementType elementType) {
+        return elementType.damageWater();
     }
 
     @Override
-    public void damageWater(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int damageFire() {
+        return 10;
     }
 
     @Override
-    public void damageEarth(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    public int damageWater() {
+        return 50;
+    }
+
+    @Override
+    public int damageEarth() {
+        return 100;
     }
 }
