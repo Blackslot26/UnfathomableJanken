@@ -7,30 +7,24 @@ import java.util.List;
  * <p>
  * A player has an identifying name, a list of available {@link Element} instances, and an active
  * {@link Element} selected for the current turn.
- *
- * @see HumanPlayer
- * @see AIPlayer
- * @see Element
  */
 public abstract class Player {
-    private String name;
-    private List<Element> elements;
+    private final List<Element> elements;
     private Element currentElement;
 
     /**
      * Constructs a new {@link Player}.
      */
-    protected Player() {}
+    protected Player() {
+        this.elements = List.of(); // TODO(mateusfccp): generate random list of elements
+    }
 
     /**
      * Returns the name of the player.
      *
      * @return The player name.
-     * @throws UnsupportedOperationException If this method is not implemented.
      */
-    public String getName() {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    public abstract String getName();
 
     /**
      * Checks whether the player still has any active elements available for combat.
@@ -38,18 +32,26 @@ public abstract class Player {
      * @return {@code true} if at least one element is active; {@code false} otherwise.
      * @throws UnsupportedOperationException If this method is not implemented.
      */
-    public boolean hasActiveElements() {
-        throw new UnsupportedOperationException("Not implemented");
+    public final boolean hasActiveElements() {
+        return !getActiveElements().isEmpty();
     }
 
     /**
      * Returns the list of all active elements currently possessed by this player.
      *
      * @return An unmodifiable or active {@link List} of {@link Element} instances.
-     * @throws UnsupportedOperationException If this method is not implemented.
      */
-    public List<Element> getActiveElements() {
-        throw new UnsupportedOperationException("Not implemented");
+    public final List<Element> getActiveElements() {
+        return elements.stream().filter(Element::isActive).toList();
+    }
+
+    /**
+     * Returns the active element currently selected by this player.
+     *
+     * @return The current {@link Element} or {@code null} if none is selected.
+     */
+    public final Element getCurrentElement() {
+        return currentElement;
     }
 
     /**
@@ -57,5 +59,24 @@ public abstract class Player {
      *
      * @param element The {@link Element} to set as current.
      */
-    public abstract void setCurrentElement(Element element);
+    public final void setCurrentElement(Element element) {
+        this.currentElement = element;
+    }
+    /**
+     * Returns the total energy this player can have.
+     *
+     * @return The total energy this player can have.
+     */
+    public final int getTotalEnergy() {
+        return elements.size() * 100;
+    }
+
+    /**
+     * Returns the current energy this player has.
+     *
+     * @return The current energy this player has.
+     */
+    public final int getEnergy() {
+        return elements.stream().mapToInt(Element::getEnergy).sum();
+    }
 }

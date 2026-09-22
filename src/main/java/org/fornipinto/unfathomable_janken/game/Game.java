@@ -11,36 +11,39 @@ public class Game {
 
     /**
      * Constructs a new {@link Game}.
+     *
+     * @param mainPlayer The main human player participating in this game.
      */
-    public Game() {}
+    public Game(HumanPlayer mainPlayer) {
+        this.mainPlayer = mainPlayer;
+        this.enemyPlayer = new AIPlayer();
+        this.currentPlayer = mainPlayer;
+    }
 
     /**
      * Returns the main human player participating in this game.
      *
      * @return The {@link HumanPlayer} instance.
-     * @throws UnsupportedOperationException If this method is not implemented.
      */
     public HumanPlayer getMainPlayer() {
-        throw new UnsupportedOperationException("Not implemented");
+        return mainPlayer;
     }
 
     /**
      * Returns the enemy AI player participating in this game.
      *
      * @return The {@link AIPlayer} instance.
-     * @throws UnsupportedOperationException If this method is not implemented.
      */
     public AIPlayer getEnemyPlayer() {
-        throw new UnsupportedOperationException("Not implemented");
+        return enemyPlayer;
     }
 
     /**
      * Returns the player whose turn or action is currently active.
      *
      * @return The active {@link Player} instance.
-     * @throws UnsupportedOperationException If this method is not implemented.
      */
     public Player getCurrentPlayer() {
-        throw new UnsupportedOperationException("Not implemented");
+        return currentPlayer;
     }
 }

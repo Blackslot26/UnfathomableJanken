@@ -1,5 +1,6 @@
 package org.fornipinto.unfathomable_janken.engine;
 
+import org.jline.terminal.KeyEvent;
 import org.fornipinto.unfathomable_janken.ui.core.Component;
 
 /**
@@ -37,9 +38,9 @@ public interface Scene {
      * <p>
      * This method is called whenever a key is pressed while this scene is active.
      *
-     * @param key The code of the key that was pressed.
+     * @param event The key event that occurred.
      */
-    default void onKeyPress(Key key) {}
+    default void onKeyPress(KeyEvent event) {}
 
     /**
      * Disposes of any resources held by the scene.

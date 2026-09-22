@@ -1,5 +1,7 @@
 package org.fornipinto.unfathomable_janken.engine;
 
+import org.jline.terminal.Attributes;
+import org.jline.terminal.KeyEvent;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
@@ -15,6 +17,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -24,8 +28,9 @@ import java.util.function.Consumer;
 public final class Engine implements AutoCloseable, Context {
     private static Engine context = null;
     private final Terminal terminal = TerminalBuilder.builder().build();
+    private final Attributes originalAttributes;
     private final Display display;
-    private final AtomicReference<Key> lastKey = new AtomicReference<>(null);
+    private final Queue<KeyEvent> keyQueue = new ConcurrentLinkedQueue<>();
     private final SceneManager sceneManager;
     private final InputThread inputThread;
     private final UIThread uiThread;
@@ -39,7 +44,7 @@ public final class Engine implements AutoCloseable, Context {
      * @throws IOException If an I/O error occurs while initializing the terminal.
      */
     public Engine(Scene initialScene) throws IOException {
-        terminal.enterRawMode();
+        originalAttributes = terminal.enterRawMode();
 
         display = new Display(terminal, true);
 
@@ -62,7 +67,7 @@ public final class Engine implements AutoCloseable, Context {
         context = this;
         sceneManager = new SceneManager(Objects.requireNonNull(initialScene), this::stop);
 
-        inputThread = new InputThread(terminal, lastKey);
+        inputThread = new InputThread(terminal, keyQueue);
         inputThread.setDaemon(true);
         inputThread.start();
 
@@ -107,9 +112,8 @@ public final class Engine implements AutoCloseable, Context {
     }
 
     private void handleInput() {
-        final Key keyToProcess = lastKey.getAndSet(null);
-
-        if (keyToProcess != null) {
+        KeyEvent keyToProcess;
+        while ((keyToProcess = keyQueue.poll()) != null) {
             sceneManager.currentScene().onKeyPress(keyToProcess);
         }
     }
@@ -180,6 +184,9 @@ public final class Engine implements AutoCloseable, Context {
         terminal.puts(Capability.keypad_local);
         terminal.puts(Capability.exit_ca_mode);
         terminal.puts(Capability.cursor_visible);
+        if (originalAttributes != null) {
+            terminal.setAttributes(originalAttributes);
+        }
         uiThread.interrupt();
         inputThread.interrupt();
         display.clear();

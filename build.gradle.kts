@@ -25,6 +25,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.jline:jline:4.4.5")
+    implementation("org.yaml:snakeyaml:2.7")
 }
 
 tasks.test {

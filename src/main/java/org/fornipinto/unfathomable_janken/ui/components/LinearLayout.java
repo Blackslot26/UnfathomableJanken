@@ -117,6 +117,7 @@ public class LinearLayout extends Component {
                 child.layout(childConstraints);
 
                 mainAxisLength = mainAxisLength + getChildMainAxisLength(child);
+                crossAxisLength = Math.max(crossAxisLength, getChildCrossAxisLength(child));
             }
         }
 

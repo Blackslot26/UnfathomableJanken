@@ -38,14 +38,15 @@ public final class Box extends Component {
 
     @Override
     public void layout(Constraints constraints) {
-        final int minimumSize = border == null ? 0 : 2;
+        final int borderOffset = border == null ? 0 : 1;
+        final int minimumSize = borderOffset * 2;
         final Constraints minimalConstraints = new Constraints(minimumSize, null, minimumSize, null);
 
         if (child == null) {
             size = constraints.enforce(minimalConstraints).smallest();
         } else {
             // We first lay out the child with the padded constraints so it can determine its size
-            final Constraints paddedConstraints = constraints.deflate(EdgeInsets.all(1));
+            final Constraints paddedConstraints = constraints.deflate(EdgeInsets.all(borderOffset));
             child.layout(paddedConstraints);
 
             final Constraints bordersConstraints = new Constraints(

@@ -1,15 +1,30 @@
 package org.fornipinto.unfathomable_janken.game;
 
+import org.yaml.snakeyaml.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Concrete {@link Player} representing an automated computer opponent powered by an {@link AI} strategy.
  */
 public class AIPlayer extends Player {
+    private final String name;
     private AI ai;
 
     /**
      * Constructs a new {@link AIPlayer}.
      */
-    public AIPlayer() {}
+    public AIPlayer() {
+        super();
+        this.name = generateName();
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
 
     /**
      * Configures the artificial intelligence strategy to be used by this player.
@@ -21,14 +36,27 @@ public class AIPlayer extends Player {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    /**
-     * Sets the chosen active element for the AI player.
-     *
-     * @param element The {@link Element} to set as current.
-     * @throws UnsupportedOperationException If this method is not implemented.
-     */
-    @Override
-    public void setCurrentElement(Element element) {
-        throw new UnsupportedOperationException("Not implemented");
+    String generateName() {
+        final var yaml = new Yaml();
+
+        try (var input = ClassLoader.getSystemResourceAsStream("dictionary.yaml")) {
+            if (input == null) {
+                throw new IOException("Dictionary file not found.");
+            }
+
+            final Map<String, Object> dictionary = yaml.load(input);
+            final var adjectives = dictionary.get("adjectives");
+            final var nouns = dictionary.get("nouns");
+
+            if (adjectives instanceof List<?> adjectivesList && nouns instanceof List<?> nounsList) {
+                final var randomAdjective = adjectivesList.get((int) (Math.random() * adjectivesList.size()));
+                final var randomNoun = nounsList.get((int) (Math.random() * nounsList.size()));
+                return String.format("%s %s", randomAdjective, randomNoun);
+            } else {
+                throw new IOException("Invalid dictionary format.");
+            }
+        } catch (IOException exception) {
+            throw new RuntimeException("Error occurred while generating AI player name.", exception);
+        }
     }
 }
