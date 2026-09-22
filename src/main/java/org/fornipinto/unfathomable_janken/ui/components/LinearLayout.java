@@ -58,78 +58,108 @@ public class LinearLayout extends Component {
             return;
         }
 
-        size = constraints.biggest();
-        int availableSpace = mainAxisLength();
-        int mainAxisLength = 0;
-        int crossAxisLength = 0;
-        int totalFlex = 0;
+        final var isMainAxisBounded = orientation == Orientation.HORIZONTAL
+            ? constraints.hasBoundedWidth()
+            : constraints.hasBoundedHeight();
+
+        final var mainAxisMaxLength = orientation == Orientation.HORIZONTAL
+            ? constraints.maxWidth()
+            : constraints.maxHeight();
+
+        final var isCrossAxisBounded = orientation == Orientation.HORIZONTAL
+            ? constraints.hasBoundedHeight()
+            : constraints.hasBoundedWidth();
+
+        final var crossAxisMaxLength = orientation == Orientation.HORIZONTAL
+            ? constraints.maxHeight()
+            : constraints.maxWidth();
+
+        final var crossAxisMinChildLength = (crossAxisAlignment == CrossAxisAlignment.STRETCH && isCrossAxisBounded) ? crossAxisMaxLength : 0;
+        final var crossAxisMaxChildLength = isCrossAxisBounded ? crossAxisMaxLength : null;
+
+         var allocatedMainAxisLength = 0;
+         var maxChildCrossAxisLength = 0;
+         var totalFlex = 0;
 
         for (Component child : children) {
-            final Object data = child.data();
+            final var data = child.data();
 
             if (data instanceof FlexibleData(int flex)) {
-                totalFlex += flex;
+                totalFlex = totalFlex + flex;
             } else {
                 final Constraints childConstraints = switch (orientation) {
                     case HORIZONTAL -> new Constraints(
                         0,
-                        availableSpace,
-                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
-                        crossAxisLength()
+                        null,
+                        crossAxisMinChildLength,
+                        crossAxisMaxChildLength
                     );
                     case VERTICAL -> new Constraints(
-                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
-                        crossAxisLength(),
+                        crossAxisMinChildLength,
+                        crossAxisMaxChildLength,
                         0,
-                        availableSpace
+                        null
                     );
                 };
 
                 child.layout(childConstraints);
 
-                availableSpace = availableSpace - getChildMainAxisLength(child);
-                mainAxisLength = mainAxisLength + getChildMainAxisLength(child);
-                crossAxisLength = Math.max(crossAxisLength, getChildCrossAxisLength(child));
+                allocatedMainAxisLength = allocatedMainAxisLength + getChildMainAxisLength(child);
+                maxChildCrossAxisLength = Math.max(maxChildCrossAxisLength, getChildCrossAxisLength(child));
             }
         }
 
-        for (Component child : children) {
-            final Object data = child.data();
+        if (totalFlex > 0) {
+            if (!isMainAxisBounded) {
+                throw new IllegalStateException("LinearLayout children have non-zero flex but incoming constraints are unbounded.");
+            }
 
-            if (data instanceof FlexibleData(int flex)) {
-                final int length = (int) ((flex / (float) totalFlex) * availableSpace);
+            var remainingFreeSpace = Math.max(0, mainAxisMaxLength - allocatedMainAxisLength);
+            var remainingFlex = totalFlex;
 
-                final Constraints childConstraints = switch (orientation) {
-                    case HORIZONTAL -> new Constraints(
-                        length,
-                        length,
-                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
-                        crossAxisLength()
-                    );
-                    case VERTICAL -> new Constraints(
-                        crossAxisAlignment == CrossAxisAlignment.STRETCH ? crossAxisLength() : 0,
-                        crossAxisLength(),
-                        length,
-                        length
-                    );
-                };
+            for (Component child : children) {
+                final var data = child.data();
 
-                child.layout(childConstraints);
+                if (data instanceof FlexibleData(int flex)) {
+                    final var length = Math.round((flex / (float) remainingFlex) * remainingFreeSpace);
+                    remainingFreeSpace = remainingFreeSpace - length;
+                    remainingFlex = remainingFlex - flex;
 
-                mainAxisLength = mainAxisLength + getChildMainAxisLength(child);
-                crossAxisLength = Math.max(crossAxisLength, getChildCrossAxisLength(child));
+                    final var childConstraints = switch (orientation) {
+                        case HORIZONTAL -> new Constraints(
+                            length,
+                            length,
+                            crossAxisMinChildLength,
+                            crossAxisMaxChildLength
+                        );
+                        case VERTICAL -> new Constraints(
+                            crossAxisMinChildLength,
+                            crossAxisMaxChildLength,
+                            length,
+                            length
+                        );
+                    };
+
+                    child.layout(childConstraints);
+
+                    allocatedMainAxisLength = allocatedMainAxisLength + getChildMainAxisLength(child);
+                    maxChildCrossAxisLength = Math.max(maxChildCrossAxisLength, getChildCrossAxisLength(child));
+                }
             }
         }
 
-        final Size naturalSize = switch (mainAxisSize) {
-            case MIN -> switch (orientation) {
-                case HORIZONTAL -> new Size(mainAxisLength, crossAxisLength);
-                case VERTICAL -> new Size(crossAxisLength, mainAxisLength);
-            };
-            case MAX -> switch (orientation) {
-                case HORIZONTAL -> new Size(constraints.maxWidth(), crossAxisLength);
-                case VERTICAL -> new Size(crossAxisLength, constraints.maxHeight());
-            };
+        final var finalMainAxisLength = switch (this.mainAxisSize) {
+            case MIN -> allocatedMainAxisLength;
+            case MAX -> isMainAxisBounded ? mainAxisMaxLength : allocatedMainAxisLength;
+        };
+
+        final var finalCrossAxisLength = (crossAxisAlignment == CrossAxisAlignment.STRETCH && isCrossAxisBounded)
+            ? crossAxisMaxLength
+            : maxChildCrossAxisLength;
+
+        final var naturalSize = switch (orientation) {
+            case HORIZONTAL -> new Size(finalMainAxisLength, finalCrossAxisLength);
+            case VERTICAL -> new Size(finalCrossAxisLength, finalMainAxisLength);
         };
 
         size = constraints.constrain(naturalSize);
@@ -159,13 +189,6 @@ public class LinearLayout extends Component {
                 }
             }
         }
-    }
-
-    private int mainAxisLength() {
-        return switch (orientation) {
-            case HORIZONTAL -> size.width();
-            case VERTICAL -> size.height();
-        };
     }
 
     private int crossAxisLength() {

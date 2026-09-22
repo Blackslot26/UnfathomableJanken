@@ -16,6 +16,11 @@ import java.util.Objects;
  */
 public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight, Integer maxHeight) {
     /**
+     * Constant representing an unbounded dimension.
+     */
+    public static final int UNBOUNDED = Integer.MAX_VALUE;
+
+    /**
      * Constructs a Constraints object with the specified minimum and maximum width and height.
      * <p>
      * Null values are treated as unbounded (0 for minimums and Integer.MAX_VALUE for maximums).
@@ -28,9 +33,9 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
      */
     public Constraints {
         if (minWidth == null) minWidth = 0;
-        if (maxWidth == null) maxWidth = Integer.MAX_VALUE;
+        if (maxWidth == null) maxWidth = UNBOUNDED;
         if (minHeight == null) minHeight = 0;
-        if (maxHeight == null) maxHeight = Integer.MAX_VALUE;
+        if (maxHeight == null) maxHeight = UNBOUNDED;
 
         if (minWidth < 0 || maxWidth < 0 || minHeight < 0 || maxHeight < 0) {
             throw new IllegalArgumentException("Constraints values must be non-negative.");
@@ -107,21 +112,39 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
     }
 
     /**
-     * Checks if the width constraints are tight (i.e., minimum width is equals to maximum width).
+     * Checks if the width constraints are tight (i.e., minimum width is equals to maximum width and bounded).
      *
      * @return true if the width constraints are tight, false otherwise.
      */
     public boolean hasTightWidth() {
-        return Objects.equals(minWidth, maxWidth);
+        return hasBoundedWidth() && Objects.equals(minWidth, maxWidth);
     }
 
     /**
-     * Checks if the height constraints are tight (i.e., minimum height is equals to maximum height).
+     * Checks if the height constraints are tight (i.e., minimum height is equals to maximum height and bounded).
      *
      * @return true if the height constraints are tight, false otherwise.
      */
     public boolean hasTightHeight() {
-        return Objects.equals(minHeight, maxHeight);
+        return hasBoundedHeight() && Objects.equals(minHeight, maxHeight);
+    }
+
+    /**
+     * Checks if the maximum width is bounded (less than {@link #UNBOUNDED}).
+     *
+     * @return true if maximum width is bounded, false otherwise.
+     */
+    public boolean hasBoundedWidth() {
+        return maxWidth < UNBOUNDED;
+    }
+
+    /**
+     * Checks if the maximum height is bounded (less than {@link #UNBOUNDED}).
+     *
+     * @return true if maximum height is bounded, false otherwise.
+     */
+    public boolean hasBoundedHeight() {
+        return maxHeight < UNBOUNDED;
     }
 
     /**
@@ -182,9 +205,9 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
     public Constraints inflate(int width, int height) {
         return new Constraints(
             Math.max(0, minWidth),
-            Math.max(0, maxWidth + width),
+            hasBoundedWidth() ? Math.max(0, maxWidth + width) : UNBOUNDED,
             Math.max(0, minHeight),
-            Math.max(0, maxHeight + height)
+            hasBoundedHeight() ? Math.max(0, maxHeight + height) : UNBOUNDED
         );
     }
 
@@ -202,7 +225,7 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
      * Returns new constraints that are deflated by the given amounts in width and height.
      * <p>
      * The minimum constraints will never be less than 0, and the maximum constraints will never be less than the
-     * minimum constraints.
+     * minimum constraints. Unbounded maximum constraints remain unbounded.
      *
      * @param width  The amount to deflate the height constraints.
      * @param height The amount to deflate the width constraints.
@@ -214,9 +237,9 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
 
         return new Constraints(
             deflatedMinWidth,
-            Math.max(deflatedMinWidth, maxWidth - width),
+            hasBoundedWidth() ? Math.max(deflatedMinWidth, maxWidth - width) : UNBOUNDED,
             deflatedMinHeight,
-            Math.max(deflatedMinHeight, maxHeight - height)
+            hasBoundedHeight() ? Math.max(deflatedMinHeight, maxHeight - height) : UNBOUNDED
         );
     }
 
