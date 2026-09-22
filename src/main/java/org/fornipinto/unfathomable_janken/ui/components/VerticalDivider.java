@@ -11,7 +11,15 @@ import org.fornipinto.unfathomable_janken.ui.core.Constraints;
 public final class VerticalDivider extends Component {
     @Override
     public void layout(Constraints constraints) {
-        size = new Size(1, constraints.maxHeight());
+        final int targetHeight;
+
+        if (constraints.hasBoundedHeight()) {
+            targetHeight = constraints.maxHeight();
+        } else {
+            targetHeight = constraints.minHeight();
+        }
+
+        size = constraints.constrain(new Size(1, targetHeight));
     }
 
     @Override

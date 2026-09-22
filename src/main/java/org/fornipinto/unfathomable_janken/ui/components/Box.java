@@ -49,11 +49,18 @@ public final class Box extends Component {
             final Constraints paddedConstraints = constraints.deflate(EdgeInsets.all(borderOffset));
             child.layout(paddedConstraints);
 
+            final int maxWidth = child.size().width() >= Constraints.UNBOUNDED - minimumSize
+                ? Constraints.UNBOUNDED
+                : child.size().width() + minimumSize;
+            final int maxHeight = child.size().height() >= Constraints.UNBOUNDED - minimumSize
+                ? Constraints.UNBOUNDED
+                : child.size().height() + minimumSize;
+
             final Constraints bordersConstraints = new Constraints(
                 minimumSize,
-                child.size().width() + minimumSize,
+                maxWidth,
                 minimumSize,
-                child.size().height() + minimumSize
+                maxHeight
             ).enforce(constraints);
             size = bordersConstraints.biggest();
             final Constraints childConstraints = Constraints.loose(

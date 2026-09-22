@@ -157,6 +157,36 @@ public class LinearLayout extends Component {
             ? crossAxisMaxLength
             : maxChildCrossAxisLength;
 
+        if (finalCrossAxisLength > 0) {
+            for (Component child : children) {
+                if (crossAxisAlignment == CrossAxisAlignment.STRETCH) {
+                    final Constraints childConstraints = switch (orientation) {
+                        case HORIZONTAL -> new Constraints(
+                            child.size().width(),
+                            child.size().width(),
+                            finalCrossAxisLength,
+                            finalCrossAxisLength
+                        );
+                        case VERTICAL -> new Constraints(
+                            finalCrossAxisLength,
+                            finalCrossAxisLength,
+                            child.size().height(),
+                            child.size().height()
+                        );
+                    };
+                    child.layout(childConstraints);
+                } else if (orientation == Orientation.HORIZONTAL && child instanceof VerticalDivider) {
+                    final Constraints childConstraints = new Constraints(
+                        child.size().width(),
+                        child.size().width(),
+                        finalCrossAxisLength,
+                        finalCrossAxisLength
+                    );
+                    child.layout(childConstraints);
+                }
+            }
+        }
+
         final var naturalSize = switch (orientation) {
             case HORIZONTAL -> new Size(finalMainAxisLength, finalCrossAxisLength);
             case VERTICAL -> new Size(finalCrossAxisLength, finalMainAxisLength);
