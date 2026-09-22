@@ -1,5 +1,6 @@
 package org.fornipinto.unfathomable_janken.game.player;
 
+import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.ai.AI;
 import org.yaml.snakeyaml.*;
 
@@ -31,13 +32,25 @@ public class AIPlayer extends Player {
      * Configures the artificial intelligence strategy to be used by this player.
      *
      * @param ai The {@link AI} strategy instance.
-     * @throws UnsupportedOperationException If this method is not implemented.
      */
     public void setAI(AI ai) {
-        throw new UnsupportedOperationException("Not implemented");
+        this.ai = ai;
     }
 
-    String generateName() {
+    /**
+     * Selects the next element for this player based on the configured {@link AI} strategy and the current game state.
+     *
+     * @param game The current game state.
+     */
+    public void selectNextElement(Game game) {
+        if (currentElement != null) {
+            throw new IllegalStateException("Cannot select next element: player already has a selected element.");
+        }
+
+        currentElement = ai.chooseElement(game);
+    }
+
+    static private String generateName() {
         final var yaml = new Yaml();
 
         try (var input = ClassLoader.getSystemResourceAsStream("dictionary.yaml")) {

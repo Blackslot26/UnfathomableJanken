@@ -11,9 +11,9 @@ import java.util.Objects;
  */
 public class Game {
     private GameManager manager;
-    private HumanPlayer mainPlayer;
-    private AIPlayer enemyPlayer;
-    private Player currentPlayer;
+    final private HumanPlayer mainPlayer;
+    final private AIPlayer enemyPlayer;
+    private Player attacker;
 
     /**
      * Constructs a new {@link Game}.
@@ -23,7 +23,7 @@ public class Game {
     public Game(HumanPlayer mainPlayer) {
         this.mainPlayer = Objects.requireNonNull(mainPlayer);
         this.enemyPlayer = new AIPlayer();
-        this.currentPlayer = mainPlayer;
+        this.attacker = mainPlayer;
     }
 
     /**
@@ -45,11 +45,29 @@ public class Game {
     }
 
     /**
-     * Returns the player whose turn or action is currently active.
+     * Returns the attacking player in the current turn.
      *
-     * @return The active {@link Player} instance.
+     * @return The attacker {@link Player} instance.
      */
-    public Player getCurrentPlayer() {
-        return currentPlayer;
+    public Player getAttacker() {
+        return attacker;
+    }
+
+    private Player getDefender() {
+        if (attacker == mainPlayer) {
+            return enemyPlayer;
+        } else {
+            return mainPlayer;
+        }
+    }
+
+    private void processTurn() {
+        if (mainPlayer.getCurrentElement() == null) {
+            final var newElement = Objects.requireNonNull(manager.requireElementSelection(mainPlayer));
+            mainPlayer.setCurrentElement(newElement);
+        } else if (enemyPlayer.getCurrentElement() == null) {
+            enemyPlayer.selectNextElement(this);
+        } else {
+        }
     }
 }

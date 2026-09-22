@@ -12,7 +12,7 @@ import java.util.List;
  */
 public abstract class Player {
     private final List<Element> elements;
-    private Element currentElement;
+    protected Element currentElement;
 
     /**
      * Constructs a new {@link Player}.
@@ -56,14 +56,6 @@ public abstract class Player {
         return currentElement;
     }
 
-    /**
-     * Sets the active element to be used by this player in the current turn.
-     *
-     * @param element The {@link Element} to set as current.
-     */
-    public final void setCurrentElement(Element element) {
-        this.currentElement = element;
-    }
     /**
      * Returns the total energy this player can have.
      *
