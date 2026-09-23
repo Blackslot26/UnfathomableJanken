@@ -71,6 +71,21 @@ final class InputThread extends Thread {
         return map;
     }
 
+    static KeyEvent parseKeyEvent(String raw) {
+        if (raw == null) {
+            return KeyParser.parse(null);
+        }
+        // Workaround for JLine 4.4.5: KeyParser.parseSS3Sequence does not map SS3 arrows
+        // (\033OA - \033OD) or Home/End (\033OH, \033OF). We normalize them to ANSI CSI (\033[...).
+        if (raw.startsWith("\033O") && raw.length() == 3) {
+            final char c = raw.charAt(2);
+            if ((c >= 'A' && c <= 'D') || c == 'H' || c == 'F') {
+                raw = "\033[" + c;
+            }
+        }
+        return KeyParser.parse(raw);
+    }
+
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
@@ -79,7 +94,7 @@ final class InputThread extends Thread {
 
                 if (matched != null) {
                     final String raw = bindingReader.getLastBinding();
-                    final KeyEvent event = KeyParser.parse(raw);
+                    final KeyEvent event = parseKeyEvent(raw);
                     keyQueue.add(event);
                     IO.println("Key pressed: " + event);
                 }

@@ -56,7 +56,6 @@ public final class Engine implements AutoCloseable, Context {
 
         terminal.puts(Capability.cursor_invisible);
         terminal.puts(Capability.enter_ca_mode);
-        terminal.puts(Capability.keypad_xmit);
 
         updateTerminalSize();
 
