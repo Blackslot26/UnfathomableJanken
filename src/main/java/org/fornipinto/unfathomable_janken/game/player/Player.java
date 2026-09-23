@@ -1,11 +1,11 @@
 package org.fornipinto.unfathomable_janken.game.player;
 
-import org.fornipinto.unfathomable_janken.game.element.EarthElement;
-import org.fornipinto.unfathomable_janken.game.element.Element;
-import org.fornipinto.unfathomable_janken.game.element.FireElement;
-import org.fornipinto.unfathomable_janken.game.element.WaterElement;
+import org.fornipinto.unfathomable_janken.game.element.*;
 
 import java.util.List;
+import java.util.Random;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 /**
  * Abstract base class representing a player in the game.
@@ -21,16 +21,7 @@ public abstract class Player {
      * Constructs a new {@link Player}.
      */
     protected Player() {
-        final var types = List.of(
-            new EarthElement(),
-            new EarthElement(),
-            new WaterElement(),
-            new FireElement(),
-            new EarthElement(),
-            new FireElement()
-        );
-
-        this.elements = types.stream().map(Element::new).toList();
+        this.elements = generateRandomElements(6);
     }
 
     /**
@@ -84,5 +75,22 @@ public abstract class Player {
      */
     public final int getEnergy() {
         return elements.stream().mapToInt(Element::getEnergy).sum();
+    }
+
+    protected final List<Element> generateRandomElements(int count) {
+        final List<Supplier<ElementType>> elementGenerators = List.of(
+            FireElement::new,
+            WaterElement::new,
+            EarthElement::new
+        );
+
+        final var random = new Random();
+
+        return IntStream.range(0, count)
+            .map(_ -> random.nextInt(elementGenerators.size()))
+            .mapToObj(elementGenerators::get)
+            .map(Supplier::get)
+            .map(Element::new)
+            .toList();
     }
 }
