@@ -33,8 +33,7 @@ public class Game {
         this.log.add(new GameStartedLogItem());
         this.state = State.SELECTING_ELEMENT;
 
-        this.enemyPlayer.selectNextElement(this);
-        log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
+        selectEnemyNextElement();
     }
 
     /**
@@ -106,8 +105,7 @@ public class Game {
             if (defender == mainPlayer) {
                 state = State.SELECTING_ELEMENT;
             } else {
-                enemyPlayer.selectNextElement(this);
-                log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
+                selectEnemyNextElement();
             }
         }
 
@@ -130,6 +128,11 @@ public class Game {
      */
     public State getState() {
         return state;
+    }
+
+    private void selectEnemyNextElement() {
+        enemyPlayer.selectNextElement(this);
+        log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
     }
 
     /**
