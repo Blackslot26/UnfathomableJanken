@@ -103,7 +103,7 @@ public final class Box extends Component {
         // Fill the inside with spaces
         for (int y = borderOffset; y < size.height() - borderOffset; y++) {
             for (int x = borderOffset; x < size.width() - borderOffset; x++) {
-                canvas.draw(' ', x, y);
+                canvas.draw(' ', x, y, paint);
             }
         }
 

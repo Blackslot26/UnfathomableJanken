@@ -68,19 +68,22 @@ public class GameScene implements Scene {
                         new PlayerCard(game.getMainPlayer(), playerHighlightedElement)
                     )
                 ),
-                new Box(
-                    Border.SINGLE,
-                    new Column(
-                        new Text("GAME LOG", Paint.BOLD),
-                        new SizedBox(0, 1),
-                        new Flexible(1,
-                            new Column(
-                                game.getLog()
-                                    .stream()
-                                    .map(logItem -> logItem.accept(new LogItemDescriptionVisitor()))
-                                    .map(Text::new)
-                                    .toArray(Component[]::new)
-                            ).mainAxisSize(MainAxisSize.MIN)
+                new ConstrainedBox(
+                    Constraints.tightWidth(60),
+                    new Box(
+                        Border.SINGLE,
+                        new Column(
+                            new Text("GAME LOG", Paint.BOLD),
+                            new SizedBox(0, 1),
+                            new Flexible(1,
+                                new Column(
+                                    game.getLog()
+                                        .stream()
+                                        .map(logItem -> logItem.accept(new LogItemDescriptionVisitor()))
+                                        .map(Text::new)
+                                        .toArray(Component[]::new)
+                                ).mainAxisSize(MainAxisSize.MIN)
+                            )
                         )
                     )
                 )

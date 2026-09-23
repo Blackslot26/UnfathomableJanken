@@ -1,16 +1,16 @@
 package org.fornipinto.unfathomable_janken.game.scenes;
 
+import org.fornipinto.unfathomable_janken.ui.core.*;
 import org.jline.terminal.KeyEvent;
 import org.fornipinto.unfathomable_janken.engine.Engine;
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
 import org.fornipinto.unfathomable_janken.ui.components.*;
-import org.fornipinto.unfathomable_janken.ui.core.Alignment;
-import org.fornipinto.unfathomable_janken.ui.core.Border;
-import org.fornipinto.unfathomable_janken.ui.core.Component;
-import org.fornipinto.unfathomable_janken.ui.core.MainAxisSize;
 
+/**
+ * A scene that renders the main menu.
+ */
 public class MainMenuScene implements Scene {
     private String playerName = "";
 
@@ -18,13 +18,16 @@ public class MainMenuScene implements Scene {
     public Component build() {
         return new Align(
             Alignment.CENTER,
-            new Box(
-                Border.SINGLE,
-                new Column(
-                    new Text("Enter your name: "),
-                    new SizedBox(0, 1),
-                    new Text(playerName)
-                ).mainAxisSize(MainAxisSize.MIN)
+            new ConstrainedBox(
+                Constraints.tightWidth(30),
+                new Box(
+                    Border.SINGLE,
+                    new Column(
+                        new Text("Enter your name: "),
+                        new SizedBox(0, 1),
+                        new TextInput(playerName, true)
+                    ).mainAxisSize(MainAxisSize.MIN)
+                )
             )
         );
     }
