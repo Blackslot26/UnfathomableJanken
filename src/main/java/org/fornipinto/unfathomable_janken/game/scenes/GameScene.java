@@ -132,25 +132,27 @@ public class GameScene implements Scene {
     }
 
     private Component elementCard(Element element, boolean isSelected) {
+        final var disabledPaint = new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
         final var type = element.getType();
-        final var icon = type.accept(new ElementTypeIconVisitor());
+        final var icon = element.isActive() ? type.accept(new ElementTypeIconVisitor()) : "💀";
         final var name = type.accept(new ElementTypeNameVisitor());
-        final var paint = type.accept(new ElementTypePaintVisitor());
-        final Paint boxPaint;
+        final var elementNamePaint = element.isActive() ? type.accept(new ElementTypePaintVisitor()) : disabledPaint;
+        final var energyPaint = element.isActive() ? new Paint() : disabledPaint;
 
+        final Paint boxPaint;
         if (isSelected) {
             boxPaint = new Paint().withBold(true).withForegroundColor(ColorPalette.BANANA);
         } else if (element.isActive()) {
             boxPaint = new Paint();
         } else {
-            boxPaint = new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
+            boxPaint = disabledPaint;
         }
 
         return new Box(
             Border.SINGLE,
             new Column(
-                new Text(icon + " " + name, paint),
-                new Text(element.getEnergy() + " / 100")
+                new Text(icon + " " + name, elementNamePaint),
+                new Text(element.getEnergy() + " / 100", energyPaint)
             )
         ).withPaint(boxPaint);
     }
