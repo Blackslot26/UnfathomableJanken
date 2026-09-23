@@ -1,9 +1,7 @@
 package org.fornipinto.unfathomable_janken.game;
 
-import org.fornipinto.unfathomable_janken.game.log.ElementAttackedLogItem;
-import org.fornipinto.unfathomable_janken.game.log.ElementSelectedLogItem;
-import org.fornipinto.unfathomable_janken.game.log.GameStartedLogItem;
-import org.fornipinto.unfathomable_janken.game.log.LogItem;
+import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.log.*;
 import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
 import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
 import org.fornipinto.unfathomable_janken.game.player.Player;
@@ -16,11 +14,11 @@ import java.util.Objects;
  * Core game class coordinating the players, turn state, and overall game execution.
  */
 public class Game {
-    private GameManager manager;
     final private HumanPlayer mainPlayer;
     final private AIPlayer enemyPlayer;
     private Player attacker;
     private final List<LogItem> log;
+    private State state;
 
     /**
      * Constructs a new {@link Game}.
@@ -32,7 +30,10 @@ public class Game {
         this.enemyPlayer = new AIPlayer();
         this.attacker = mainPlayer;
         this.log = new ArrayList<>();
-        log.add(new GameStartedLogItem());
+        this.log.add(new GameStartedLogItem());
+        this.state = State.SELECTING_ELEMENT;
+
+        this.enemyPlayer.selectNextElement(this);
     }
 
     /**
@@ -71,33 +72,46 @@ public class Game {
     }
 
     /**
-     * Process current turn and apply relevant changes.
+     * Selects an element for the specified player.
+     *
+     * @param player  The player selecting the element.
+     * @param element The element being selected.
      */
-    public void processTurn() {
-        if (manager == null) return;
+    public void selectElement(HumanPlayer player, Element element) {
+        if (state != State.SELECTING_ELEMENT) return;
 
-        if (mainPlayer.getCurrentElement() == null) {
-            manager.requireElementSelection(mainPlayer);
-            log.add(new ElementSelectedLogItem(mainPlayer, mainPlayer.getCurrentElement()));
-        } else if (enemyPlayer.getCurrentElement() == null) {
-            enemyPlayer.selectNextElement(this);
-            log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
-        } else {
-            final var attackerElement = attacker.getCurrentElement();
-            final var defenderElement = getDefender().getCurrentElement();
-            final var damage = attackerElement.attack(defenderElement);
-            log.add(new ElementAttackedLogItem(attacker, getDefender(), attackerElement, defenderElement, damage));
-            attacker = getDefender();
-        }
+        player.setCurrentElement(element);
+        log.add(new ElementSelectedLogItem(player, element));
+        state = State.READY_TO_ATTACK;
     }
 
     /**
-     * Sets the {@link GameManager} responsible for managing game state and interactions.
-     *
-     * @param manager The {@link GameManager} instance to set.
+     * Process current turn and apply relevant changes.
      */
-    public void setManager(GameManager manager) {
-        this.manager = Objects.requireNonNull(manager);
+    public void processTurn() {
+        if (state != State.READY_TO_ATTACK) return;
+
+        final var defender = getDefender();
+        final var attackerElement = attacker.getCurrentElement();
+        final var defenderElement = getDefender().getCurrentElement();
+        final var damage = attacker.attack(getDefender());
+        log.add(new ElementAttackedLogItem(attacker, getDefender(), attackerElement, defenderElement, damage));
+        attacker = getDefender();
+
+        if (!defender.hasActiveElements()) {
+            state = State.GAME_OVER;
+            log.add(new GameOverLogItem(attacker));
+            return;
+        } else if (defender.getCurrentElement() == null) {
+            if (defender == mainPlayer) {
+                state = State.SELECTING_ELEMENT;
+            } else {
+                enemyPlayer.selectNextElement(this);
+                log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
+            }
+        }
+
+        attacker = defender;
     }
 
     /**
@@ -107,5 +121,34 @@ public class Game {
      */
     public List<LogItem> getLog() {
         return List.copyOf(log);
+    }
+
+    /**
+     * Returns the current state of the game.
+     *
+     * @return The current state.
+     */
+    public State getState() {
+        return state;
+    }
+
+    /**
+     * Represents the possible states of the game.
+     */
+    public enum State {
+        /**
+         * The game is running in its attack phase.
+         */
+        READY_TO_ATTACK,
+
+        /**
+         * The game is in the process of selecting an element.
+         */
+        SELECTING_ELEMENT,
+
+        /**
+         * The game has ended.
+         */
+        GAME_OVER,
     }
 }

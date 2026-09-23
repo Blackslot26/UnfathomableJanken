@@ -86,6 +86,24 @@ public abstract class Player {
         return elements.stream().mapToInt(Element::getEnergy).sum();
     }
 
+    /**
+     * Attacks another player using the currently selected element.
+     *
+     * @param other The player being attacked.
+     * @return The amount of damage inflicted on the other player's element.
+     */
+    public final int attack(Player other) {
+        final var attackerElement = currentElement;
+        final var defenderElement = other.currentElement;
+        final var damage = attackerElement.attack(defenderElement);
+
+        if (!defenderElement.isActive()) {
+            other.currentElement = null;
+        }
+
+        return damage;
+    }
+
     protected final List<Element> generateRandomElements(int count) {
         final List<Supplier<ElementType>> elementGenerators = List.of(
             FireElement::new,

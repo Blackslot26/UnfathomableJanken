@@ -2,7 +2,6 @@ package org.fornipinto.unfathomable_janken.game.scenes;
 
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
-import org.fornipinto.unfathomable_janken.game.GameManager;
 import org.fornipinto.unfathomable_janken.game.element.*;
 import org.fornipinto.unfathomable_janken.game.log.*;
 import org.fornipinto.unfathomable_janken.game.player.Player;
@@ -15,11 +14,10 @@ import java.util.Objects;
 /**
  * A scene that renders the game.
  */
-public class GameScene implements Scene, GameManager {
+public class GameScene implements Scene {
     private final Game game;
 
-    private GameSceneState state;
-    private Integer selectedElementIndex = 0;
+    private int selectedElementIndex = 0;
 
     /**
      * Creates a new GameScene.
@@ -28,18 +26,22 @@ public class GameScene implements Scene, GameManager {
      */
     public GameScene(Game game) {
         this.game = Objects.requireNonNull(game);
-        game.setManager(this);
-        this.state = GameSceneState.SWITCH_ELEMENT;
     }
 
     @Override
     public Component build() {
         final Component selectElementBox;
 
-        if (state == GameSceneState.SWITCH_ELEMENT) {
+        if (game.getState() == Game.State.SELECTING_ELEMENT) {
             selectElementBox = new Box(
                 Border.SINGLE,
-                new Text("Select an element to switch to:")
+                new Column(
+                    new Text("Select an element to switch to."),
+                    new SizedBox(0, 1),
+                    new Text("Press ENTER to confirm."),
+                    elementCard(getSelectedElement(), false)
+                ).crossAxisAlignment(CrossAxisAlignment.CENTER)
+                    .mainAxisSize(MainAxisSize.MIN)
             );
         } else {
             selectElementBox = new SizedBox();
@@ -88,17 +90,15 @@ public class GameScene implements Scene, GameManager {
 
     @Override
     public void onKeyPress(KeyEvent event) {
-        if (state == GameSceneState.SWITCH_ELEMENT) {
+        if (game.getState() == Game.State.SELECTING_ELEMENT) {
             if (event.getArrow() == KeyEvent.Arrow.Right) {
                 selectedElementIndex = (selectedElementIndex + 1) % game.getMainPlayer().getElements().size();
             } else if (event.getArrow() == KeyEvent.Arrow.Left) {
-                selectedElementIndex = (selectedElementIndex - 1 + game.getMainPlayer().getElements().size()) % game.getMainPlayer().getActiveElements().size();
+                selectedElementIndex = (selectedElementIndex - 1 + game.getMainPlayer().getElements().size()) % game.getMainPlayer().getElements().size();
             } else if (event.getSpecial() == KeyEvent.Special.Enter) {
-                final var selectedElement = getSelectedElementIndex();
+                final var selectedElement = getSelectedElement();
                 if (selectedElement != null && selectedElement.isActive()) {
-                    game.getMainPlayer().setCurrentElement(selectedElement);
-                    selectedElementIndex = null;
-                    state = GameSceneState.RUNNING;
+                    game.selectElement(game.getMainPlayer(), selectedElement);
                 }
             }
         } else if (event.getSpecial() == KeyEvent.Special.Enter) {
@@ -116,23 +116,34 @@ public class GameScene implements Scene, GameManager {
                 ),
                 new VerticalDivider(),
                 new Row(
-                    player.getElements().stream().map(this::elementCard).toArray(Component[]::new)
+                    player
+                        .getElements()
+                        .stream()
+                        .map(
+                            element -> elementCard(
+                                element,
+                                (game.getState() == Game.State.SELECTING_ELEMENT ? getSelectedElement() : player.getCurrentElement()) == element
+                            )
+                        )
+                        .toArray(Component[]::new)
                 )
             )
         );
     }
 
-    private Component elementCard(Element element) {
+    private Component elementCard(Element element, boolean isSelected) {
         final var type = element.getType();
         final var icon = type.accept(new ElementTypeIconVisitor());
         final var name = type.accept(new ElementTypeNameVisitor());
         final var paint = type.accept(new ElementTypePaintVisitor());
         final Paint boxPaint;
 
-        if (selectedElementIndex != null && selectedElementIndex.equals(game.getMainPlayer().getElements().indexOf(element))) {
+        if (isSelected) {
             boxPaint = new Paint().withBold(true).withForegroundColor(ColorPalette.BANANA);
-        } else {
+        } else if (element.isActive()) {
             boxPaint = new Paint();
+        } else {
+            boxPaint = new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
         }
 
         return new Box(
@@ -144,23 +155,9 @@ public class GameScene implements Scene, GameManager {
         ).withPaint(boxPaint);
     }
 
-    private Element getSelectedElementIndex() {
-        if (selectedElementIndex == null) {
-            return null;
-        } else {
-            return game.getMainPlayer().getElements().get(selectedElementIndex);
-        }
-    }
+    private Element getSelectedElement() {
 
-    @Override
-    public void requireElementSelection(Player player) {
-        state = GameSceneState.SWITCH_ELEMENT;
-    }
-
-    private enum GameSceneState {
-        RUNNING,
-        SWITCH_ELEMENT,
-        GAME_OVER,
+        return game.getMainPlayer().getElements().get(selectedElementIndex);
     }
 }
 

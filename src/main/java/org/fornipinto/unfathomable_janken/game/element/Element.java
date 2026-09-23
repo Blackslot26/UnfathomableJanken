@@ -54,7 +54,7 @@ public final class Element {
             throw new IllegalArgumentException("Damage must be a positive integer");
         }
 
-        this.energy = this.energy - damage;
+        this.energy = Math.max(0, this.energy - damage);
     }
 
     /**

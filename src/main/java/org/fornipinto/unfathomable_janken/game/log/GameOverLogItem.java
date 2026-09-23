@@ -15,7 +15,7 @@ public final class GameOverLogItem implements LogItem {
      *
      * @param winner The player who won the game.
      */
-    GameOverLogItem(Player winner) {
+    public GameOverLogItem(Player winner) {
         this.winner = Objects.requireNonNull(winner);
     }
 
