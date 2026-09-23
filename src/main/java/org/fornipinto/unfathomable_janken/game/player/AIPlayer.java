@@ -2,11 +2,13 @@ package org.fornipinto.unfathomable_janken.game.player;
 
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.ai.AI;
+import org.fornipinto.unfathomable_janken.game.element.Element;
 import org.yaml.snakeyaml.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Concrete {@link Player} representing an automated computer opponent powered by an {@link AI} strategy.
@@ -21,6 +23,16 @@ public class AIPlayer extends Player {
     public AIPlayer() {
         super();
         this.name = generateName();
+        ai = new AI() {
+            final Random random = new Random();
+
+            @Override
+            public Element chooseElement(Game game) {
+                final var elements = game.getEnemyPlayer().getActiveElements();
+                final var selected = random.nextInt(elements.size());
+                return elements.get(selected);
+            }
+        };
     }
 
     @Override
@@ -47,8 +59,7 @@ public class AIPlayer extends Player {
             throw new IllegalStateException("Cannot select next element: player already has a selected element.");
         }
 
-//        currentElement = ai.chooseElement(game);
-        currentElement = getActiveElements().getFirst();
+        currentElement = ai.chooseElement(game);
     }
 
     static private String generateName() {
