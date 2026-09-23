@@ -39,6 +39,7 @@ public class GameScene implements Scene {
                     new Text("Select an element to switch to."),
                     new SizedBox(0, 1),
                     new Text("Press ENTER to confirm."),
+                    new SizedBox(0, 1),
                     elementCard(getSelectedElement(), false)
                 ).crossAxisAlignment(CrossAxisAlignment.CENTER)
                     .mainAxisSize(MainAxisSize.MIN)
