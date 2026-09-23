@@ -8,6 +8,7 @@ import org.fornipinto.unfathomable_janken.ui.core.*;
 public final class Box extends Component {
     private final Component child;
     private final Border border;
+    private Paint paint;
 
     /**
      * Constructs an empty {@link Box} with no child, using default styles.
@@ -34,6 +35,7 @@ public final class Box extends Component {
     public Box(Border border, Component child) {
         this.child = child;
         this.border = border;
+        this.paint = null;
     }
 
     @Override
@@ -80,21 +82,21 @@ public final class Box extends Component {
         // Draw the border if it exists
         if (border != null) {
             // Draw corners (now from lineStyle)
-            canvas.draw(border.topLeft(), 0, 0);
-            canvas.draw(border.topRight(), size.width() - 1, 0);
-            canvas.draw(border.bottomLeft(), 0, size.height() - 1);
-            canvas.draw(border.bottomRight(), size.width() - 1, size.height() - 1);
+            canvas.draw(border.topLeft(), 0, 0, paint);
+            canvas.draw(border.topRight(), size.width() - 1, 0, paint);
+            canvas.draw(border.bottomLeft(), 0, size.height() - 1, paint);
+            canvas.draw(border.bottomRight(), size.width() - 1, size.height() - 1, paint);
 
             // Draw horizontal lines
             for (int x = 1; x < size.width() - 1; x++) {
-                canvas.draw(border.horizontal(), x, 0);
-                canvas.draw(border.horizontal(), x, size.height() - 1);
+                canvas.draw(border.horizontal(), x, 0, paint);
+                canvas.draw(border.horizontal(), x, size.height() - 1, paint);
             }
 
             // Draw vertical lines
             for (int y = 1; y < size.height() - 1; y++) {
-                canvas.draw(border.vertical(), 0, y);
-                canvas.draw(border.vertical(), size.width() - 1, y);
+                canvas.draw(border.vertical(), 0, y, paint);
+                canvas.draw(border.vertical(), size.width() - 1, y, paint);
             }
         }
 
@@ -109,5 +111,16 @@ public final class Box extends Component {
         if (child != null) {
             canvas.draw(child, borderOffset, borderOffset);
         }
+    }
+
+    /**
+     * Sets the paint for this box and its child component.
+     *
+     * @param paint The {@link Paint} to apply to this box and its child.
+     * @return This {@link Box} instance, allowing for method chaining.
+     */
+    public Box withPaint(Paint paint) {
+        this.paint = paint;
+        return this;
     }
 }
