@@ -56,7 +56,12 @@ public class Text extends Component {
     private void computeLines(String content, int maxWidth) {
         lines.clear();
 
-        if (content.isEmpty() || maxWidth <= 0) return;
+        if (maxWidth <= 0) return;
+
+        if (content.isEmpty()) {
+            lines.add("");
+            return;
+        }
 
         final StringBuilder currentWord = new StringBuilder();
         final StringBuilder currentLine = new StringBuilder();

@@ -66,7 +66,8 @@ public class GameScene implements Scene {
                 new Box(
                     Border.SINGLE,
                     new Column(
-                        new Text("Game Log:"),
+                        new Text("GAME LOG", Paint.BOLD),
+                        new SizedBox(0, 1),
                         new Flexible(1,
                             new Column(
                                 game.getLog()
