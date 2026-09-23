@@ -34,6 +34,7 @@ public class Game {
         this.state = State.SELECTING_ELEMENT;
 
         this.enemyPlayer.selectNextElement(this);
+        log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
     }
 
     /**
