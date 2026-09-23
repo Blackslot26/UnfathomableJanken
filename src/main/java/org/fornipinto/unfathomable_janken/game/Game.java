@@ -96,7 +96,6 @@ public class Game {
         final var defenderElement = getDefender().getCurrentElement();
         final var damage = attacker.attack(getDefender());
         log.add(new ElementAttackedLogItem(attacker, getDefender(), attackerElement, defenderElement, damage));
-        attacker = getDefender();
 
         if (!defender.hasActiveElements()) {
             state = State.GAME_OVER;
