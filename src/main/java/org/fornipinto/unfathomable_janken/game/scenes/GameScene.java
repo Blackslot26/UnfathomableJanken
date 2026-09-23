@@ -40,7 +40,7 @@ public class GameScene implements Scene {
                     new SizedBox(0, 1),
                     new Text("Press ENTER to confirm."),
                     new SizedBox(0, 1),
-                    elementCard(getSelectedElement(), false)
+                    new ElementCard(getSelectedElement(), false)
                 ).crossAxisAlignment(CrossAxisAlignment.CENTER)
                     .mainAxisSize(MainAxisSize.MIN)
             );
@@ -48,11 +48,16 @@ public class GameScene implements Scene {
             selectElementBox = new SizedBox();
         }
 
+        final var enemyHighlightedElement = game.getEnemyPlayer().getCurrentElement();
+        final var playerHighlightedElement = game.getState() == Game.State.SELECTING_ELEMENT
+            ? getSelectedElement()
+            : game.getMainPlayer().getCurrentElement();
+
         return new Box(
             new Row(
                 new Flexible(
                     new Column(
-                        playerCard(game.getEnemyPlayer()),
+                        new PlayerCard(game.getEnemyPlayer(), enemyHighlightedElement),
                         new Flexible(
                             1,
                             new Align(
@@ -60,7 +65,7 @@ public class GameScene implements Scene {
                                 selectElementBox
                             )
                         ),
-                        playerCard(game.getMainPlayer())
+                        new PlayerCard(game.getMainPlayer(), playerHighlightedElement)
                     )
                 ),
                 new Box(
@@ -108,59 +113,7 @@ public class GameScene implements Scene {
         }
     }
 
-    private Component playerCard(Player player) {
-        return new Box(
-            Border.SINGLE,
-            new Row(
-                new Column(
-                    new Text(player.getName(), Paint.BOLD),
-                    new Text("Energy: " + player.getEnergy() + " / " + player.getTotalEnergy())
-                ),
-                new VerticalDivider(),
-                new Row(
-                    player
-                        .getElements()
-                        .stream()
-                        .map(
-                            element -> elementCard(
-                                element,
-                                (game.getState() == Game.State.SELECTING_ELEMENT ? getSelectedElement() : player.getCurrentElement()) == element
-                            )
-                        )
-                        .toArray(Component[]::new)
-                )
-            )
-        );
-    }
-
-    private Component elementCard(Element element, boolean isSelected) {
-        final var disabledPaint = new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
-        final var type = element.getType();
-        final var icon = element.isActive() ? type.accept(new ElementTypeIconVisitor()) : "💀";
-        final var name = type.accept(new ElementTypeNameVisitor());
-        final var elementNamePaint = element.isActive() ? type.accept(new ElementTypePaintVisitor()) : disabledPaint;
-        final var energyPaint = element.isActive() ? new Paint() : disabledPaint;
-
-        final Paint boxPaint;
-        if (isSelected) {
-            boxPaint = new Paint().withBold(true).withForegroundColor(ColorPalette.BANANA);
-        } else if (element.isActive()) {
-            boxPaint = new Paint();
-        } else {
-            boxPaint = disabledPaint;
-        }
-
-        return new Box(
-            Border.SINGLE,
-            new Column(
-                new Text(icon + " " + name, elementNamePaint),
-                new Text(element.getEnergy() + " / 100", energyPaint)
-            )
-        ).withPaint(boxPaint);
-    }
-
     private Element getSelectedElement() {
-
         return game.getMainPlayer().getElements().get(selectedElementIndex);
     }
 }
@@ -239,5 +192,79 @@ class LogItemDescriptionVisitor implements LogItemVisitor<String> {
     @Override
     public String visit(GameOverLogItem item) {
         return "Game over. " + item.getWinner().getName() + " won the game.";
+    }
+}
+
+final class PlayerCard extends Composent {
+    private final Player player;
+    private final Element highlightedElement;
+
+    public PlayerCard(Player player, Element highlightedElement) {
+        this.player = Objects.requireNonNull(player);
+        this.highlightedElement = highlightedElement;
+    }
+
+    @Override
+    public Component build() {
+        return new Box(
+            Border.SINGLE,
+            new Row(
+                new Column(
+                    new Text(player.getName(), Paint.BOLD),
+                    new Text("Energy: " + player.getEnergy() + " / " + player.getTotalEnergy())
+                ),
+                new VerticalDivider(),
+                new Row(
+                    player
+                        .getElements()
+                        .stream()
+                        .map(
+                            element -> new ElementCard(
+                                element,
+                                highlightedElement == element
+                            )
+                        )
+                        .toArray(Component[]::new)
+                )
+            )
+        );
+
+    }
+}
+
+final class ElementCard extends Composent {
+    private final Element element;
+    private final boolean isSelected;
+
+    ElementCard(Element element, boolean isSelected) {
+        this.element = Objects.requireNonNull(element);
+        this.isSelected = isSelected;
+    }
+
+    @Override
+    public Component build() {
+        final var disabledPaint = new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
+        final var type = element.getType();
+        final var icon = element.isActive() ? type.accept(new ElementTypeIconVisitor()) : "💀";
+        final var name = type.accept(new ElementTypeNameVisitor());
+        final var elementNamePaint = element.isActive() ? type.accept(new ElementTypePaintVisitor()) : disabledPaint;
+        final var energyPaint = element.isActive() ? new Paint() : disabledPaint;
+
+        final Paint boxPaint;
+        if (isSelected) {
+            boxPaint = new Paint().withBold(true).withForegroundColor(ColorPalette.BANANA);
+        } else if (element.isActive()) {
+            boxPaint = new Paint();
+        } else {
+            boxPaint = disabledPaint;
+        }
+
+        return new Box(
+            Border.SINGLE,
+            new Column(
+                new Text(icon + " " + name, elementNamePaint),
+                new Text(element.getEnergy() + " / 100", energyPaint)
+            )
+        ).withPaint(boxPaint);
     }
 }
