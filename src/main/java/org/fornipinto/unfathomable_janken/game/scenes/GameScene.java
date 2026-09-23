@@ -19,7 +19,7 @@ public class GameScene implements Scene, GameManager {
     private final Game game;
 
     private GameSceneState state;
-    private Integer selectedElement = 0;
+    private Integer selectedElementIndex = 0;
 
     /**
      * Creates a new GameScene.
@@ -90,12 +90,16 @@ public class GameScene implements Scene, GameManager {
     public void onKeyPress(KeyEvent event) {
         if (state == GameSceneState.SWITCH_ELEMENT) {
             if (event.getArrow() == KeyEvent.Arrow.Right) {
-                selectedElement = (selectedElement + 1) % game.getMainPlayer().getActiveElements().size();
+                selectedElementIndex = (selectedElementIndex + 1) % game.getMainPlayer().getElements().size();
             } else if (event.getArrow() == KeyEvent.Arrow.Left) {
-                selectedElement = (selectedElement - 1 + game.getMainPlayer().getActiveElements().size()) % game.getMainPlayer().getActiveElements().size();
+                selectedElementIndex = (selectedElementIndex - 1 + game.getMainPlayer().getElements().size()) % game.getMainPlayer().getActiveElements().size();
             } else if (event.getSpecial() == KeyEvent.Special.Enter) {
-                game.getMainPlayer().setCurrentElement(game.getMainPlayer().getActiveElements().get(selectedElement));
-                state = GameSceneState.RUNNING;
+                final var selectedElement = getSelectedElementIndex();
+                if (selectedElement != null && selectedElement.isActive()) {
+                    game.getMainPlayer().setCurrentElement(selectedElement);
+                    selectedElementIndex = null;
+                    state = GameSceneState.RUNNING;
+                }
             }
         } else if (event.getSpecial() == KeyEvent.Special.Enter) {
             game.processTurn();
@@ -112,7 +116,7 @@ public class GameScene implements Scene, GameManager {
                 ),
                 new VerticalDivider(),
                 new Row(
-                    player.getActiveElements().stream().map(this::elementCard).toArray(Component[]::new)
+                    player.getElements().stream().map(this::elementCard).toArray(Component[]::new)
                 )
             )
         );
@@ -123,6 +127,13 @@ public class GameScene implements Scene, GameManager {
         final var icon = type.accept(new ElementTypeIconVisitor());
         final var name = type.accept(new ElementTypeNameVisitor());
         final var paint = type.accept(new ElementTypePaintVisitor());
+        final Paint boxPaint;
+
+        if (selectedElementIndex != null && selectedElementIndex.equals(game.getMainPlayer().getElements().indexOf(element))) {
+            boxPaint = new Paint().withBold(true).withForegroundColor(ColorPalette.BANANA);
+        } else {
+            boxPaint = new Paint();
+        }
 
         return new Box(
             Border.SINGLE,
@@ -130,7 +141,15 @@ public class GameScene implements Scene, GameManager {
                 new Text(icon + " " + name, paint),
                 new Text(element.getEnergy() + " / 100")
             )
-        );
+        ).withPaint(boxPaint);
+    }
+
+    private Element getSelectedElementIndex() {
+        if (selectedElementIndex == null) {
+            return null;
+        } else {
+            return game.getMainPlayer().getElements().get(selectedElementIndex);
+        }
     }
 
     @Override

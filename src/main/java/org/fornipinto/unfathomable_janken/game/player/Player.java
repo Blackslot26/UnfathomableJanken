@@ -42,6 +42,15 @@ public abstract class Player {
     }
 
     /**
+     * Returns the list of all elements currently possessed by this player.
+     *
+     * @return An unmodifiable {@link List} of {@link Element} instances.
+     */
+    public List<Element> getElements() {
+        return List.copyOf(elements);
+    }
+
+    /**
      * Returns the list of all active elements currently possessed by this player.
      *
      * @return An unmodifiable or active {@link List} of {@link Element} instances.
