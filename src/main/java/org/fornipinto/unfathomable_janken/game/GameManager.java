@@ -1,6 +1,7 @@
 package org.fornipinto.unfathomable_janken.game;
 
 import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.player.Player;
 
 /**
  * Interface that defines the game management contract for orchestrating player interactions
@@ -15,5 +16,5 @@ public interface GameManager {
      *
      * @return The chosen {@link Element} instance.
      */
-    Element requireElementSelection();
+    void requireElementSelection(Player player);
 }

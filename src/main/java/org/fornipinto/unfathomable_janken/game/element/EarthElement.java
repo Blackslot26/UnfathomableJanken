@@ -4,29 +4,23 @@ package org.fornipinto.unfathomable_janken.game.element;
  * Concrete implementation of {@link ElementType} representing the Earth element.
  */
 public class EarthElement implements ElementType {
-    /**
-     * Constructs a new {@link EarthElement}.
-     */
-    public EarthElement() {
+    @Override
+    public <R> R accept(ElementTypeVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 
     @Override
-    public int getDamaged(ElementType elementType) {
-        return elementType.damageEarth();
-    }
-
-    @Override
-    public int damageFire() {
+    public Integer visit(FireElement fireElement) {
         return 100;
     }
 
     @Override
-    public int damageWater() {
+    public Integer visit(WaterElement waterElement) {
         return 10;
     }
 
     @Override
-    public int damageEarth() {
+    public Integer visit(EarthElement earthElement) {
         return 50;
     }
 }

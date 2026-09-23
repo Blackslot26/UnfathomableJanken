@@ -4,32 +4,35 @@ package org.fornipinto.unfathomable_janken.game.element;
  * Interface representing the elemental type of an {@link Element} and defining the double-dispatch
  * mechanism for elemental damage calculations.
  */
-public interface ElementType {
-    /// Compute the damage inflicted on this element type by another element type.
-    ///
-    /// @param elementType The opposing {@link ElementType} to compute damage against.
-    ///
-    /// @return The damage value inflicted on this element type by the opposing element type.
-    int getDamaged(ElementType elementType);
+public interface ElementType extends ElementTypeVisitor<Integer> {
+    /**
+     * Accepts a visitor to perform an operation on this element type.
+     *
+     * @param visitor The visitor to accept.
+     * @param <R>     The return type of the visitor's operation.
+     * @return The result of the operation.
+     */
+    <R> R accept(ElementTypeVisitor<R> visitor);
+
 
     /**
      * Computes damage against a fire element.
      *
      * @return The damage value inflicted on a fire element.
      */
-    int damageFire();
+    Integer visit(FireElement fireElement);
 
     /**
      * Computes damage against a water element.
      *
      * @return The damage value inflicted on a water element.
      */
-    int damageWater();
+    Integer visit(WaterElement waterElement);
 
     /**
      * Computes damage against an earth element.
      *
      * @return The damage value inflicted on an earth element.
      */
-    int damageEarth();
+    Integer visit(EarthElement earthElement);
 }

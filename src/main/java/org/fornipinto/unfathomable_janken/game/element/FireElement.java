@@ -4,29 +4,24 @@ package org.fornipinto.unfathomable_janken.game.element;
  * Concrete implementation of {@link ElementType} representing the Fire element.
  */
 public class FireElement implements ElementType {
-    /**
-     * Constructs a new {@link FireElement}.
-     */
-    public FireElement() {
+
+    @Override
+    public <R> R accept(ElementTypeVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 
     @Override
-    public int getDamaged(ElementType elementType) {
-        return elementType.damageFire();
-    }
-
-    @Override
-    public int damageFire() {
+    public Integer visit(FireElement fireElement) {
         return 50;
     }
 
     @Override
-    public int damageWater() {
+    public Integer visit(WaterElement waterElement) {
         return 100;
     }
 
     @Override
-    public int damageEarth() {
+    public Integer visit(EarthElement earthElement) {
         return 10;
     }
 }

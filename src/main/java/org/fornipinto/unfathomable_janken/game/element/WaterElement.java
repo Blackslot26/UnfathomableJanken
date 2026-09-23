@@ -4,28 +4,23 @@ package org.fornipinto.unfathomable_janken.game.element;
  * Concrete implementation of {@link ElementType} representing the Water element.
  */
 public class WaterElement implements ElementType {
-    /**
-     * Constructs a new {@link WaterElement}.
-     */
-    public WaterElement() {}
-
     @Override
-    public int getDamaged(ElementType elementType) {
-        return elementType.damageWater();
+    public <R> R accept(ElementTypeVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 
     @Override
-    public int damageFire() {
+    public Integer visit(FireElement fireElement) {
         return 10;
     }
 
     @Override
-    public int damageWater() {
+    public Integer visit(WaterElement waterElement) {
         return 50;
     }
 
     @Override
-    public int damageEarth() {
+    public Integer visit(EarthElement earthElement) {
         return 100;
     }
 }

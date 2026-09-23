@@ -1,9 +1,15 @@
 package org.fornipinto.unfathomable_janken.game;
 
+import org.fornipinto.unfathomable_janken.game.log.ElementAttackedLogItem;
+import org.fornipinto.unfathomable_janken.game.log.ElementSelectedLogItem;
+import org.fornipinto.unfathomable_janken.game.log.GameStartedLogItem;
+import org.fornipinto.unfathomable_janken.game.log.LogItem;
 import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
 import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
 import org.fornipinto.unfathomable_janken.game.player.Player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,6 +20,7 @@ public class Game {
     final private HumanPlayer mainPlayer;
     final private AIPlayer enemyPlayer;
     private Player attacker;
+    private final List<LogItem> log;
 
     /**
      * Constructs a new {@link Game}.
@@ -24,6 +31,8 @@ public class Game {
         this.mainPlayer = Objects.requireNonNull(mainPlayer);
         this.enemyPlayer = new AIPlayer();
         this.attacker = mainPlayer;
+        this.log = new ArrayList<>();
+        log.add(new GameStartedLogItem());
     }
 
     /**
@@ -61,13 +70,42 @@ public class Game {
         }
     }
 
-    private void processTurn() {
+    /**
+     * Process current turn and apply relevant changes.
+     */
+    public void processTurn() {
+        if (manager == null) return;
+
         if (mainPlayer.getCurrentElement() == null) {
-            final var newElement = Objects.requireNonNull(manager.requireElementSelection(mainPlayer));
-            mainPlayer.setCurrentElement(newElement);
+            manager.requireElementSelection(mainPlayer);
+            log.add(new ElementSelectedLogItem(mainPlayer, mainPlayer.getCurrentElement()));
         } else if (enemyPlayer.getCurrentElement() == null) {
             enemyPlayer.selectNextElement(this);
+            log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));
         } else {
+            final var attackerElement = attacker.getCurrentElement();
+            final var defenderElement = getDefender().getCurrentElement();
+            final var damage = attackerElement.attack(defenderElement);
+            log.add(new ElementAttackedLogItem(attacker, getDefender(), attackerElement, defenderElement, damage));
+            attacker = getDefender();
         }
+    }
+
+    /**
+     * Sets the {@link GameManager} responsible for managing game state and interactions.
+     *
+     * @param manager The {@link GameManager} instance to set.
+     */
+    public void setManager(GameManager manager) {
+        this.manager = Objects.requireNonNull(manager);
+    }
+
+    /**
+     * Returns the current game log.
+     *
+     * @return The game log.
+     */
+    public List<LogItem> getLog() {
+        return List.copyOf(log);
     }
 }

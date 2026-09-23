@@ -66,9 +66,17 @@ public final class Element {
         return this.type;
     }
 
-    public void attack(Element other) {
+    /**
+     * Attack another element.
+     *
+     * @param other The element to attack.
+     * @return The amount of damage inflicted on the other element.
+     */
+    public int attack(Element other) {
         Objects.requireNonNull(other);
 
-        final var damage = other.getType().getDamaged(this.type);
+        final var damage = other.getType().accept(this.type);
+        other.getDamaged(damage);
+        return damage;
     }
 }
