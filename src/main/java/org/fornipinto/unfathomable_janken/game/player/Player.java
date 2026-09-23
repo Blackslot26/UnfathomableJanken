@@ -1,6 +1,9 @@
 package org.fornipinto.unfathomable_janken.game.player;
 
+import org.fornipinto.unfathomable_janken.game.element.EarthElement;
 import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.element.FireElement;
+import org.fornipinto.unfathomable_janken.game.element.WaterElement;
 
 import java.util.List;
 
@@ -18,7 +21,16 @@ public abstract class Player {
      * Constructs a new {@link Player}.
      */
     protected Player() {
-        this.elements = List.of(); // TODO(mateusfccp): generate random list of elements
+        final var types = List.of(
+            new EarthElement(),
+            new EarthElement(),
+            new WaterElement(),
+            new FireElement(),
+            new EarthElement(),
+            new FireElement()
+        );
+
+        this.elements = types.stream().map(Element::new).toList();
     }
 
     /**

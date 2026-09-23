@@ -52,13 +52,18 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
 
     /**
      * Creates a Constraints object with tight constraints.
+     * <p>
+     * If a dimension is unbounded (equal to or greater than {@link #UNBOUNDED}), its minimum constraint
+     * is set to 0 to prevent requiring an impossible infinite size.
      *
      * @param width  The exact width constraint.
      * @param height The exact height constraint.
      * @return A {@link Constraints} object with tight constraints.
      */
     public static Constraints tight(int width, int height) {
-        return new Constraints(width, width, height, height);
+        final int minWidth = width >= UNBOUNDED ? 0 : width;
+        final int minHeight = height >= UNBOUNDED ? 0 : height;
+        return new Constraints(minWidth, width, minHeight, height);
     }
 
     /**
@@ -68,7 +73,42 @@ public record Constraints(Integer minWidth, Integer maxWidth, Integer minHeight,
      * @return A {@link Constraints} object with tight constraints.
      */
     public static Constraints tight(Size size) {
-        return new Constraints(size.width(), size.width(), size.height(), size.height());
+        return tight(size.width(), size.height());
+    }
+
+    /**
+     * Creates constraints that are tight for the specified dimensions (if not null) and loose/unbounded for others.
+     *
+     * @param width  The exact width constraint, or null for unbounded.
+     * @param height The exact height constraint, or null for unbounded.
+     * @return A {@link Constraints} object.
+     */
+    public static Constraints tightFor(Integer width, Integer height) {
+        final Integer minW = (width != null && width < UNBOUNDED) ? width : 0;
+        final Integer maxW = width;
+        final Integer minH = (height != null && height < UNBOUNDED) ? height : 0;
+        final Integer maxH = height;
+        return new Constraints(minW, maxW, minH, maxH);
+    }
+
+    /**
+     * Creates constraints that have a tight width and unbounded height.
+     *
+     * @param width The exact width constraint.
+     * @return A {@link Constraints} object with tight width.
+     */
+    public static Constraints tightWidth(int width) {
+        return tightFor(width, null);
+    }
+
+    /**
+     * Creates constraints that have a tight height and unbounded width.
+     *
+     * @param height The exact height constraint.
+     * @return A {@link Constraints} object with tight height.
+     */
+    public static Constraints tightHeight(int height) {
+        return tightFor(null, height);
     }
 
 

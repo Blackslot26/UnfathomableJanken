@@ -35,6 +35,12 @@ public final class Canvas {
      */
     public Canvas(Component component) {
         this.component = component;
+        if (component.size() == null) {
+            throw new IllegalStateException("Component size is null. Did you forget to call layout() on " + component.getClass().getSimpleName() + "?");
+        }
+        if (component.size().width() == Constraints.UNBOUNDED || component.size().height() == Constraints.UNBOUNDED) {
+            throw new IllegalStateException("Cannot create Canvas with unbounded dimensions for " + component.getClass().getSimpleName() + ": " + component.size());
+        }
         this.width = component.size.width();
         this.height = component.size.height();
         tiles = new Character[width][height];

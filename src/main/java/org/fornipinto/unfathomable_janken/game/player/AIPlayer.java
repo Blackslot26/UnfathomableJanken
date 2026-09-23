@@ -47,7 +47,8 @@ public class AIPlayer extends Player {
             throw new IllegalStateException("Cannot select next element: player already has a selected element.");
         }
 
-        currentElement = ai.chooseElement(game);
+//        currentElement = ai.chooseElement(game);
+        currentElement = getActiveElements().getFirst();
     }
 
     static private String generateName() {

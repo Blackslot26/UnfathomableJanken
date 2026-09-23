@@ -1,6 +1,7 @@
 package org.fornipinto.unfathomable_janken.ui.components;
 
 import org.fornipinto.unfathomable_janken.core.Offset;
+import org.fornipinto.unfathomable_janken.core.Size;
 import org.fornipinto.unfathomable_janken.ui.core.Alignment;
 import org.fornipinto.unfathomable_janken.ui.core.Canvas;
 import org.fornipinto.unfathomable_janken.ui.core.Component;
@@ -28,8 +29,17 @@ public final class Align extends Component {
 
     @Override
     public void layout(Constraints constraints) {
-        size = constraints.biggest();
-        child.layout(Constraints.loose(size));
+        final Constraints childConstraints = constraints.loosen();
+        child.layout(childConstraints);
+
+        final int width = constraints.hasBoundedWidth()
+            ? constraints.maxWidth()
+            : child.size().width();
+        final int height = constraints.hasBoundedHeight()
+            ? constraints.maxHeight()
+            : child.size().height();
+
+        size = constraints.constrain(new Size(width, height));
     }
 
     @Override

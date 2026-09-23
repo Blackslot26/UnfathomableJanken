@@ -15,6 +15,13 @@ public final class SizedBox extends Component {
     private final Component child;
 
     /**
+     * Creates an empty and sizeless sized {@link SizedBox}.
+     */
+    public SizedBox() {
+        this(new Size(0, 0), null);
+    }
+
+    /**
      * Creates a SizedBox with the given size and child.
      *
      * @param boxSize The fixed size of the box.
@@ -26,7 +33,7 @@ public final class SizedBox extends Component {
     }
 
     /**
-     * Creates a SizedBox with the given width, height and no child.
+     * Creates a SizedBox with the given width, height, and no child.
      *
      * @param width  The fixed width of the box.
      * @param height The fixed height of the box.
