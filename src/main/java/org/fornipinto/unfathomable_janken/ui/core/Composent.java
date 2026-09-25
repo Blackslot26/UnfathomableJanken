@@ -9,6 +9,19 @@ public abstract class Composent extends Component {
     protected Composent() {
     }
 
+    private Component child() {
+        if (child == null) {
+            child = build();
+        }
+
+        return child;
+    }
+
+    @Override
+    public Object data() {
+        return child().data();
+    }
+
     @Override
     public void layout(Constraints constraints) {
         child = build();
@@ -18,7 +31,7 @@ public abstract class Composent extends Component {
 
     @Override
     public void draw(Canvas canvas) {
-        canvas.draw(child, 0, 0);
+        canvas.draw(child(), 0, 0);
     }
 
     /**

@@ -35,14 +35,17 @@ public class GameScene implements Scene {
         if (game.getState() == Game.State.SELECTING_ELEMENT) {
             selectElementBox = new Box(
                 Border.SINGLE,
-                new Column(
-                    new Text("Select an element to switch to."),
-                    new SizedBox(0, 1),
-                    new Text("Press ENTER to confirm."),
-                    new SizedBox(0, 1),
-                    new ElementCard(getSelectedElement(), false)
-                ).crossAxisAlignment(CrossAxisAlignment.CENTER)
-                    .mainAxisSize(MainAxisSize.MIN)
+                new Padding(
+                    EdgeInsets.all(1),
+                    new Column(
+                        new Text("Select an element to switch to."),
+                        new SizedBox(0, 1),
+                        new Text("Press ENTER to confirm."),
+                        new SizedBox(0, 1),
+                        new ElementCard(getSelectedElement(), false)
+                    ).crossAxisAlignment(CrossAxisAlignment.CENTER)
+                        .mainAxisSize(MainAxisSize.MIN)
+                )
             );
         } else {
             selectElementBox = new SizedBox();
@@ -57,7 +60,7 @@ public class GameScene implements Scene {
             new Row(
                 new Flexible(
                     new Column(
-                        new PlayerCard(game.getEnemyPlayer(), enemyHighlightedElement),
+                        new PlayerPanel(game.getEnemyPlayer(), enemyHighlightedElement),
                         new Flexible(
                             1,
                             new Align(
@@ -65,7 +68,7 @@ public class GameScene implements Scene {
                                 selectElementBox
                             )
                         ),
-                        new PlayerCard(game.getMainPlayer(), playerHighlightedElement)
+                        new PlayerPanel(game.getMainPlayer(), playerHighlightedElement)
                     )
                 ),
                 new ConstrainedBox(
@@ -79,7 +82,7 @@ public class GameScene implements Scene {
                                 new Column(
                                     game.getLog()
                                         .stream()
-                                        .map(logItem -> logItem.accept(new LogItemDescriptionVisitor()))
+                                        .map(logItem -> "• " + logItem.accept(new LogItemDescriptionVisitor()))
                                         .map(Text::new)
                                         .toArray(Component[]::new)
                                 ).mainAxisSize(MainAxisSize.MIN)
@@ -198,40 +201,39 @@ class LogItemDescriptionVisitor implements LogItemVisitor<String> {
     }
 }
 
-final class PlayerCard extends Composent {
+final class PlayerPanel extends Composent {
     private final Player player;
     private final Element highlightedElement;
 
-    public PlayerCard(Player player, Element highlightedElement) {
+    public PlayerPanel(Player player, Element highlightedElement) {
         this.player = Objects.requireNonNull(player);
         this.highlightedElement = highlightedElement;
     }
 
     @Override
     public Component build() {
-        return new Box(
-            Border.SINGLE,
-            new Row(
+        return new Row(
+            new Box(
+                Border.SINGLE,
                 new Column(
                     new Text(player.getName(), Paint.BOLD),
                     new Text("Energy: " + player.getEnergy() + " / " + player.getTotalEnergy())
-                ),
-                new VerticalDivider(),
-                new Row(
-                    player
-                        .getElements()
-                        .stream()
-                        .map(
-                            element -> new ElementCard(
-                                element,
-                                highlightedElement == element
-                            )
-                        )
-                        .toArray(Component[]::new)
                 )
+            ),
+            new Spacer(),
+            new Row(
+                player
+                    .getElements()
+                    .stream()
+                    .map(
+                        element -> new ElementCard(
+                            element,
+                            highlightedElement == element
+                        )
+                    )
+                    .toArray(Component[]::new)
             )
-        );
-
+        ).crossAxisAlignment(CrossAxisAlignment.CENTER);
     }
 }
 
@@ -264,9 +266,12 @@ final class ElementCard extends Composent {
 
         return new Box(
             Border.SINGLE,
-            new Column(
-                new Text(icon + " " + name, elementNamePaint),
-                new Text(element.getEnergy() + " / 100", energyPaint)
+            new Padding(
+                EdgeInsets.all(1),
+                new Column(
+                    new Text(icon + " " + name, elementNamePaint),
+                    new Text(element.getEnergy() + " / 100", energyPaint)
+                )
             )
         ).withPaint(boxPaint);
     }
