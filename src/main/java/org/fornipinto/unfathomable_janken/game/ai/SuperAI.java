@@ -8,10 +8,10 @@ import org.fornipinto.unfathomable_janken.game.element.Element;
  * models to counter opponent choices.
  */
 public class SuperAI implements AI {
-    /**
-     * Constructs a new {@link SuperAI}.
-     */
-    public SuperAI() {}
+    @Override
+    public <R> R accept(AIVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 
     @Override
     public Element chooseElement(Game game) {

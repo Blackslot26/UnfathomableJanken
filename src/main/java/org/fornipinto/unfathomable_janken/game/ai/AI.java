@@ -12,6 +12,15 @@ import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
  */
 public interface AI {
     /**
+     * Accepts a visitor that can perform operations on this AI instance.
+     *
+     * @param visitor The visitor to accept.
+     * @param <R>     The return type of the visitor's operation.
+     * @return The result of the visitor's operation.
+     */
+    <R> R accept(AIVisitor<R> visitor);
+
+    /**
      * Chooses an element to play given the current game context.
      *
      * @param game The current {@link Game} instance containing player and round state.

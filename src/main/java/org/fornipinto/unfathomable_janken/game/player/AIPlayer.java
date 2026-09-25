@@ -2,12 +2,14 @@ package org.fornipinto.unfathomable_janken.game.player;
 
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.ai.AI;
+import org.fornipinto.unfathomable_janken.game.ai.AIVisitor;
 import org.fornipinto.unfathomable_janken.game.element.Element;
 import org.yaml.snakeyaml.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -19,20 +21,13 @@ public class AIPlayer extends Player {
 
     /**
      * Constructs a new {@link AIPlayer}.
+     *
+     * @param ai The {@link AI} strategy instance to be used by this player.
      */
-    public AIPlayer() {
+    public AIPlayer(AI ai) {
         super();
         this.name = generateName();
-        ai = new AI() {
-            final Random random = new Random();
-
-            @Override
-            public Element chooseElement(Game game) {
-                final var elements = game.getEnemyPlayer().getActiveElements();
-                final var selected = random.nextInt(elements.size());
-                return elements.get(selected);
-            }
-        };
+        this.ai = Objects.requireNonNull(ai);
     }
 
     @Override

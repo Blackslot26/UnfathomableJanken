@@ -24,10 +24,11 @@ public class Game {
      * Constructs a new {@link Game}.
      *
      * @param mainPlayer The main human player participating in this game.
+     * @param enemyPlayer The enemy AI player participating in this game.
      */
-    public Game(HumanPlayer mainPlayer) {
+    public Game(HumanPlayer mainPlayer, AIPlayer enemyPlayer) {
         this.mainPlayer = Objects.requireNonNull(mainPlayer);
-        this.enemyPlayer = new AIPlayer();
+        this.enemyPlayer = Objects.requireNonNull(enemyPlayer);
         this.attacker = mainPlayer;
         this.log = new ArrayList<>();
         this.log.add(new GameStartedLogItem());

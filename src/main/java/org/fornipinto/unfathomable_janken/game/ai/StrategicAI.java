@@ -8,10 +8,10 @@ import org.fornipinto.unfathomable_janken.game.element.Element;
  * and elemental counter-picks before choosing an element.
  */
 public class StrategicAI implements AI {
-    /**
-     * Constructs a new {@link StrategicAI}.
-     */
-    public StrategicAI() {}
+    @Override
+    public <R> R accept(AIVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 
     @Override
     public Element chooseElement(Game game) {
