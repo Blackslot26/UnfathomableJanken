@@ -22,7 +22,10 @@ import java.util.List;
  * The canvas can be written to a {@link PrintWriter} for display.
  */
 public final class Canvas {
-    private final Character[][] tiles;
+    private static final int EMPTY_TILE = 0;
+    private static final int WIDE_CHAR_CONTINUATION = -1;
+
+    private final int[][] tiles;
     private final Paint[][] paints;
     private final int width;
     private final int height;
@@ -43,7 +46,7 @@ public final class Canvas {
         }
         this.width = component.size.width();
         this.height = component.size.height();
-        tiles = new Character[width][height];
+        tiles = new int[width][height];
         paints = new Paint[width][height];
     }
 
@@ -151,7 +154,7 @@ public final class Canvas {
      * @param y the y-coordinate
      */
     public void draw(char c, int x, int y) {
-        draw(c, x, y, null);
+        draw((int) c, x, y, null);
     }
 
     /**
@@ -164,18 +167,63 @@ public final class Canvas {
      * @throws UIException If there was an error drawing the character (e.g., overflow).
      */
     public void draw(char c, int x, int y, Paint paint) throws UIException {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
+        draw((int) c, x, y, paint);
+    }
+
+    /**
+     * Draws a Unicode code point at the specified position with no style.
+     *
+     * @param codePoint The Unicode code point to draw.
+     * @param x         The x-coordinate.
+     * @param y         The y-coordinate.
+     */
+    public void draw(int codePoint, int x, int y) {
+        draw(codePoint, x, y, null);
+    }
+
+    /**
+     * Draws a Unicode code point at the specified position with an optional style.
+     *
+     * @param codePoint The Unicode code point to draw.
+     * @param x         The x-coordinate.
+     * @param y         The y-coordinate.
+     * @param paint     The paint style to apply, or null for no style.
+     * @throws UIException If there was an error drawing the character (e.g., overflow).
+     */
+    public void draw(int codePoint, int x, int y, Paint paint) throws UIException {
+        final var charWidth = Math.max(1, Unicode.charWidth(codePoint));
+
+        if (x < 0 || x + charWidth - 1 >= width || y < 0 || y >= height) {
             throw new OverflowException(component, new Offset(x, y));
         }
 
-        tiles[x][y] = c;
+        clearOverlappingWideChar(x, y);
+        tiles[x][y] = codePoint;
         paints[x][y] = paint;
+
+        if (charWidth == 2) {
+            clearOverlappingWideChar(x + 1, y);
+            tiles[x + 1][y] = WIDE_CHAR_CONTINUATION;
+            paints[x + 1][y] = paint;
+        }
+    }
+
+    private void clearOverlappingWideChar(int x, int y) {
+        final var existing = tiles[x][y];
+
+        if (existing == EMPTY_TILE) return;
+
+        if (existing == WIDE_CHAR_CONTINUATION && x > 0) {
+            tiles[x - 1][y] = ' ';
+        } else if (existing > 0 && Unicode.charWidth(existing) == 2 && x + 1 < width) {
+            tiles[x + 1][y] = ' ';
+        }
     }
 
     /**
      * Merges another canvas into this canvas at the specified offset.
      * <p>
-     * Only non-null characters and styles from the other canvas are copied.
+     * Only non-empty characters and styles from the other canvas are copied.
      *
      * @param other   The canvas to merge.
      * @param xOffset The x offset to merge at.
@@ -184,7 +232,7 @@ public final class Canvas {
     void merge(Canvas other, int xOffset, int yOffset) {
         for (int x = 0; x < other.width; x++) {
             for (int y = 0; y < other.height; y++) {
-                if (other.tiles[x][y] != null) {
+                if (other.tiles[x][y] != EMPTY_TILE) {
                     if (x + xOffset < 0 || x + xOffset >= width || y + yOffset < 0 || y + yOffset >= height) {
                         continue; // Discard for now
                     }
@@ -199,7 +247,7 @@ public final class Canvas {
     /**
      * Builds and returns a list of {@link AttributedString} objects that represents the canvas content.
      * <p>
-     * Each row is written in order, with null cells rendered as spaces.
+     * Each row is written in order, with empty cells rendered as spaces.
      *
      * @return A list of {@link AttributedString} objects for each row of the canvas.
      */
@@ -207,21 +255,26 @@ public final class Canvas {
         final List<AttributedString> lines = new ArrayList<>(this.height);
 
         for (int y = 0; y < height; y++) {
-            final AttributedStringBuilder lineBuilder = new AttributedStringBuilder();
+            final var lineBuilder = new AttributedStringBuilder();
 
             for (int x = 0; x < width; x++) {
-                final Character tile = tiles[x][y];
-                final Paint paint = paints[x][y];
+                final var tile = tiles[x][y];
 
-                final char ch = tile == null ? ' ' : tile;
-
-                if (paint == null) {
-                    lineBuilder.style(AttributedStyle.DEFAULT).append(ch);
-                } else {
-                    final AttributedStyle style = getStyle(paint);
-                    lineBuilder.style(style).append(ch);
+                if (tile == WIDE_CHAR_CONTINUATION) {
+                    continue;
                 }
 
+                final var paint = paints[x][y];
+                final var codePoint = tile == EMPTY_TILE ? ' ' : tile;
+                final var style = paint == null ? AttributedStyle.DEFAULT : getStyle(paint);
+
+                lineBuilder.style(style);
+
+                if (codePoint <= 0xFFFF) {
+                    lineBuilder.append((char) codePoint);
+                } else {
+                    lineBuilder.append(Character.toString(codePoint));
+                }
             }
 
             lines.add(lineBuilder.toAttributedString());

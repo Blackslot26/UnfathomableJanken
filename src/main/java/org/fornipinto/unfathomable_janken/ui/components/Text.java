@@ -5,9 +5,8 @@ import org.fornipinto.unfathomable_janken.ui.core.Canvas;
 import org.fornipinto.unfathomable_janken.ui.core.Component;
 import org.fornipinto.unfathomable_janken.ui.core.Constraints;
 import org.fornipinto.unfathomable_janken.ui.core.Paint;
+import org.fornipinto.unfathomable_janken.ui.core.Unicode;
 
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 
 /**
@@ -55,6 +54,7 @@ public class Text extends Component {
 
     private void computeLines(String content, int maxWidth) {
         lines.clear();
+        maximumLineWidth = 0;
 
         if (maxWidth <= 0) return;
 
@@ -63,76 +63,104 @@ public class Text extends Component {
             return;
         }
 
-        final StringBuilder currentWord = new StringBuilder();
-        final StringBuilder currentLine = new StringBuilder();
-        final StringCharacterIterator iterator = new StringCharacterIterator(content);
+        final var currentWord = new StringBuilder();
+        final var currentLine = new StringBuilder();
+        var currentWordWidth = 0;
+        var currentLineWidth = 0;
+        var index = 0;
 
         while (true) {
-            final char c = iterator.current();
+            final var codePoint = index < content.length() ? content.codePointAt(index) : -1;
 
-            if (c == ' ' || c == '\n' || c == CharacterIterator.DONE) {
+            if (codePoint == ' ' || codePoint == '\n' || codePoint == -1) {
                 // We reached the end of a word
-                if (currentLine.length() + currentWord.length() <= maxWidth) {
+                if (currentLineWidth + currentWordWidth <= maxWidth) {
                     // The word fits in the current line, so we add it
                     currentLine.append(currentWord);
-                } else if (currentWord.length() > maxWidth) {
+                    currentLineWidth = currentLineWidth + currentWordWidth;
+                } else if (currentWordWidth > maxWidth) {
                     // The word is too long to fit in a single line, so we use a line for the entire word and truncate it.
-                    // Maybe we could hyphenate it instead?
-                    addLineIfNotEmpty(currentLine);
-                    currentLine.append(currentWord, 0, maxWidth - 1).append('…');
-
-                    addLineIfNotEmpty(currentLine);
+                    currentLineWidth = addLineIfNotEmpty(currentLine, currentLineWidth);
+                    currentLineWidth = appendTruncatedWord(currentLine, currentWord, maxWidth);
+                    currentLineWidth = addLineIfNotEmpty(currentLine, currentLineWidth);
                 } else {
                     // Move to the next line
-                    addLineIfNotEmpty(currentLine);
+                    currentLineWidth = addLineIfNotEmpty(currentLine, currentLineWidth);
                     currentLine.append(currentWord);
+                    currentLineWidth = currentWordWidth;
                 }
 
                 currentWord.setLength(0);
+                currentWordWidth = 0;
 
-                if (c == ' ' && currentLine.length() < maxWidth) {
-                    currentLine.append(c);
-                } else if (c == '\n') {
-                    addLine(currentLine);
+                if (codePoint == ' ' && currentLineWidth < maxWidth) {
+                    currentLine.append(' ');
+                    currentLineWidth = currentLineWidth + 1;
+                } else if (codePoint == '\n') {
+                    addLine(currentLine, currentLineWidth);
+                    currentLineWidth = 0;
                 }
-                if (c == CharacterIterator.DONE) {
+
+                if (codePoint == -1) {
                     break;
                 }
             } else {
                 // We are still in the middle of a word
-                currentWord.append(c);
+                final var charWidth = Unicode.charWidth(codePoint);
+                currentWord.appendCodePoint(codePoint);
+                currentWordWidth = currentWordWidth + charWidth;
 
-                if (currentLine.length() + currentWord.length() > maxWidth) {
+                if (currentLineWidth + currentWordWidth > maxWidth) {
                     // Move current word to next line
-                    addLineIfNotEmpty(currentLine);
+                    currentLineWidth = addLineIfNotEmpty(currentLine, currentLineWidth);
                 }
             }
 
-            iterator.next();
+            index = index + Character.charCount(codePoint);
         }
 
-        addLine(currentLine);
+        addLine(currentLine, currentLineWidth);
     }
 
-    private void addLine(StringBuilder currentLine) {
+    private int appendTruncatedWord(StringBuilder target, CharSequence word, int maxWidth) {
+        final var width = Unicode.forEachGlyphUntil(word, (codePoint, columnOffset, charWidth) -> {
+            if (columnOffset + charWidth > maxWidth - 1) {
+                return false;
+            }
+
+            target.appendCodePoint(codePoint);
+            return true;
+        });
+
+        target.append('…');
+        return width + Unicode.charWidth('…');
+    }
+
+    private void addLine(StringBuilder currentLine, int currentLineWidth) {
         lines.add(currentLine.toString());
-        maximumLineWidth = Math.max(maximumLineWidth, currentLine.length());
+        maximumLineWidth = Math.max(maximumLineWidth, currentLineWidth);
         currentLine.setLength(0);
     }
 
-    private void addLineIfNotEmpty(StringBuilder currentLine) {
+    private int addLineIfNotEmpty(StringBuilder currentLine, int currentLineWidth) {
         if (!currentLine.toString().trim().isEmpty()) {
-            addLine(currentLine);
+            addLine(currentLine, currentLineWidth);
+            return 0;
         }
+
+        return currentLineWidth;
     }
 
     @Override
     public void draw(Canvas canvas) {
         for (int y = 0; y < lines.size(); y++) {
-            final String line = lines.get(y);
-            for (int x = 0; x < line.length(); x++) {
-                canvas.draw(line.charAt(x), x, y, paint);
-            }
+            final var line = lines.get(y);
+            final var currentY = y;
+
+            Unicode.forEachGlyph(
+                line,
+                (codePoint, columnOffset, _) -> canvas.draw(codePoint, columnOffset, currentY, paint)
+            );
         }
     }
 }
