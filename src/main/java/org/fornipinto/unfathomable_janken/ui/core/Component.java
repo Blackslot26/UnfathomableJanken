@@ -22,17 +22,17 @@ public abstract class Component {
     /**
      * Draws the component onto the provided canvas.
      * <p>
-     * This method is called after layout has been performed, and the component should use the canvas to render itself
-     * and any child components.
+     * This method is called after {@link layout} has been performed, and the component should use the canvas to render
+     * itself and any child components.
      *
      * @param canvas The canvas to draw on.
      */
     public abstract void draw(Canvas canvas);
 
     /**
-     * Returns the size of the component after layout has been performed.
+     * Returns the size of the component after {@link layout} has been performed.
      * <p>
-     * If layout has not been called yet, the size may be null or undefined, which will throw an exception.
+     * If {@link layout} has not been called yet, the size may be null or undefined, which will throw an exception.
      *
      * @return The size of the component.
      */

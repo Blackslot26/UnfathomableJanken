@@ -32,18 +32,31 @@ public class TextInput extends Composent {
 
     @Override
     public Component build() {
-        final var children = new ArrayList<Component>() {{
-            add(new Text(text, backgroundPaint));
+        return new LayoutBuilder(constraints -> {
+            final var maxWidth = constraints.maxWidth();
 
-            if (active) {
-                add(new Text("_", backgroundPaint.withBlink(true)));
-            }
-        }}.toArray(Component[]::new);
+            final var children = new ArrayList<Component>() {{
+                final var maxTextLength = maxWidth - 1;
+                final var isTextTooLong = text.length() > maxTextLength;
 
-        return new Box(
-            new Row(
-                children
-            )
-        ).withPaint(backgroundPaint);
+                if (isTextTooLong) {
+                    add(new Text("◀", backgroundPaint));
+                }
+
+                final var textStartIndex = Math.max(0, text.length() - maxTextLength + (isTextTooLong ? 1 : 0));
+                final var textEndIndex = text.length();
+                final var textTail = text.substring(textStartIndex, textEndIndex);
+
+                add(new Text(textTail, backgroundPaint));
+
+                if (active) {
+                    add(new Text("_", backgroundPaint.withBlink(true)));
+                }
+            }}.toArray(Component[]::new);
+
+            return new Box(
+                new Row(children)
+            ).withPaint(backgroundPaint);
+        });
     }
 }

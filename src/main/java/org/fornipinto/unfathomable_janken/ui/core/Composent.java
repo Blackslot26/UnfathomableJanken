@@ -13,7 +13,6 @@ public abstract class Composent extends Component {
     public void layout(Constraints constraints) {
         child = build();
         child.layout(constraints);
-
         size = child.size();
     }
 
