@@ -42,7 +42,7 @@ public class GameScene implements Scene {
                         new SizedBox(0, 1),
                         new Text("Press ENTER to confirm."),
                         new SizedBox(0, 1),
-                        new ElementCard(getSelectedElement(), false)
+                        new ElementCard(getSelectedElement(), false, true)
                     ).crossAxisAlignment(CrossAxisAlignment.CENTER)
                         .mainAxisSize(MainAxisSize.MIN)
                 )
@@ -60,7 +60,7 @@ public class GameScene implements Scene {
             new Row(
                 new Flexible(
                     new Column(
-                        new PlayerPanel(game.getEnemyPlayer(), enemyHighlightedElement),
+                        new PlayerPanel(game.getEnemyPlayer(), enemyHighlightedElement, false),
                         new Flexible(
                             1,
                             new Align(
@@ -68,7 +68,7 @@ public class GameScene implements Scene {
                                 selectElementBox
                             )
                         ),
-                        new PlayerPanel(game.getMainPlayer(), playerHighlightedElement)
+                        new PlayerPanel(game.getMainPlayer(), playerHighlightedElement, true)
                     )
                 ),
                 new ConstrainedBox(
@@ -204,10 +204,12 @@ class LogItemDescriptionVisitor implements LogItemVisitor<String> {
 final class PlayerPanel extends Composent {
     private final Player player;
     private final Element highlightedElement;
+    private final boolean isRevealed;
 
-    public PlayerPanel(Player player, Element highlightedElement) {
+    public PlayerPanel(Player player, Element highlightedElement, boolean isRevealed) {
         this.player = Objects.requireNonNull(player);
         this.highlightedElement = highlightedElement;
+        this.isRevealed = isRevealed;
     }
 
     @Override
@@ -228,7 +230,8 @@ final class PlayerPanel extends Composent {
                     .map(
                         element -> new ElementCard(
                             element,
-                            highlightedElement == element
+                            highlightedElement == element,
+                            highlightedElement == element || !element.isActive() || isRevealed
                         )
                     )
                     .toArray(Component[]::new)
@@ -238,21 +241,25 @@ final class PlayerPanel extends Composent {
 }
 
 final class ElementCard extends Composent {
+    static private final ElementTypeVisitor<String> iconVisitor = new ElementTypeIconVisitor();
+    static private final ElementTypeVisitor<String> typeNameVisitor = new ElementTypeNameVisitor();
+
     private final Element element;
     private final boolean isSelected;
+    private final boolean isRevealed;
 
-    ElementCard(Element element, boolean isSelected) {
+    ElementCard(Element element, boolean isSelected, boolean isRevealed) {
         this.element = Objects.requireNonNull(element);
         this.isSelected = isSelected;
+        this.isRevealed = isRevealed;
     }
 
     @Override
     public Component build() {
         final var disabledPaint = new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
-        final var type = element.getType();
-        final var icon = element.isActive() ? type.accept(new ElementTypeIconVisitor()) : "💀";
-        final var name = type.accept(new ElementTypeNameVisitor());
-        final var elementNamePaint = element.isActive() ? type.accept(new ElementTypePaintVisitor()) : disabledPaint;
+        final var icon = getElementIcon();
+        final var name = getElementTypeName();
+        final var elementNamePaint = getElementPaint();
         final var energyPaint = element.isActive() ? new Paint() : disabledPaint;
 
         final Paint boxPaint;
@@ -274,5 +281,33 @@ final class ElementCard extends Composent {
                 )
             )
         ).withPaint(boxPaint);
+    }
+
+    String getElementIcon() {
+        if (!isRevealed) {
+            return "❓";
+        } else if (!element.isActive()) {
+            return "💀";
+        } else {
+            return element.getType().accept(iconVisitor);
+        }
+    }
+
+    String getElementTypeName() {
+        if (!isRevealed) {
+            return "Unknown";
+        } else {
+            return element.getType().accept(typeNameVisitor);
+        }
+    }
+
+    Paint getElementPaint() {
+        if (!isRevealed) {
+            return new Paint();
+        } else if (!element.isActive()) {
+            return new Paint().withForegroundColor(ColorPalette.COOL_GRAY);
+        } else {
+            return element.getType().accept(new ElementTypePaintVisitor());
+        }
     }
 }
