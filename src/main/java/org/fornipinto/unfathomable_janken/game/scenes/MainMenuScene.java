@@ -16,6 +16,16 @@ import java.util.List;
  * A scene that renders the main menu.
  */
 public class MainMenuScene implements Scene {
+
+    private static final String TITLE = """
+        ╻ ╻┏┓╻┏━╸┏━┓╺┳╸╻ ╻┏━┓┏┳┓┏━┓┏┓ ╻  ┏━╸
+        ┃ ┃┃┗┫┣╸ ┣━┫ ┃ ┣━┫┃ ┃┃┃┃┣━┫┣┻┓┃  ┣╸\s
+        ┗━┛╹ ╹╹  ╹ ╹ ╹ ╹ ╹┗━┛╹ ╹╹ ╹┗━┛┗━╸┗━╸
+                  ┏┓┏━┓┏┓╻╻┏ ┏━╸┏┓╻        \s
+                   ┃┣━┫┃┗┫┣┻┓┣╸ ┃┗┫        \s
+                 ┗━┛╹ ╹╹ ╹╹ ╹┗━╸╹ ╹        \s
+        """;
+
     private String playerName = "";
     private int selectedAIIndex = 0;
 
@@ -41,31 +51,35 @@ public class MainMenuScene implements Scene {
     public Component build() {
         return new Align(
             Alignment.CENTER,
-            new ConstrainedBox(
-                Constraints.tightWidth(30),
-                new Box(
-                    Border.SINGLE,
-                    new Padding(
-                        EdgeInsets.all(1),
-                        new Column(
-                            new Text("Enter your name: "),
-                            new SizedBox(0, 1),
-                            new TextInput(playerName, true),
-                            new SizedBox(0, 1),
-                            new Text("Use the arrow keys to change the difficulty: "),
-                            new SizedBox(0, 1),
-                            new Selector<>(
-                                possibleAIs,
-                                getSelectedAI(),
-                                ai -> ai.accept(new AINameVisitor())
-                            ),
-                            new SizedBox(0, 1),
-                            new Text("Press ENTER to start.")
-                        ).mainAxisSize(MainAxisSize.MIN)
-                            .crossAxisAlignment(CrossAxisAlignment.CENTER)
+            new Column(
+                new Text(TITLE),
+                new SizedBox(0, 1),
+                new ConstrainedBox(
+                    Constraints.tightWidth(30),
+                    new Box(
+                        Border.SINGLE,
+                        new Padding(
+                            EdgeInsets.all(1),
+                            new Column(
+                                new Text("Enter your name: "),
+                                new SizedBox(0, 1),
+                                new TextInput(playerName, true),
+                                new SizedBox(0, 1),
+                                new Text("Use the arrow keys to change the difficulty: "),
+                                new SizedBox(0, 1),
+                                new Selector<>(
+                                    possibleAIs,
+                                    getSelectedAI(),
+                                    ai -> ai.accept(new AINameVisitor())
+                                ),
+                                new SizedBox(0, 1),
+                                new Text("Press ENTER to start.")
+                            ).mainAxisSize(MainAxisSize.MIN)
+                                .crossAxisAlignment(CrossAxisAlignment.CENTER)
+                        )
                     )
                 )
-            )
+            ).mainAxisSize(MainAxisSize.MIN).crossAxisAlignment(CrossAxisAlignment.CENTER)
         );
     }
 
