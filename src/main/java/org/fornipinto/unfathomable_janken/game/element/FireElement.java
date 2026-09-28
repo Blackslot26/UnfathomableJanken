@@ -27,11 +27,11 @@ public class FireElement implements ElementType {
 
     @Override
     public Integer visit(WoodElement woodElement) {
-        return 40;
+        return 60;
     }
 
     @Override
     public Integer visit(MetalElement metalElement) {
-        return 60;
+        return 40;
     }
 }

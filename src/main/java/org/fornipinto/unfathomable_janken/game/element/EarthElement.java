@@ -11,7 +11,7 @@ public class EarthElement implements ElementType {
 
     @Override
     public Integer visit(FireElement fireElement) {
-        return 40;
+        return 30;
     }
 
     @Override
@@ -31,6 +31,6 @@ public class EarthElement implements ElementType {
 
     @Override
     public Integer visit(MetalElement metalElement) {
-        return 30;
+        return 40;
     }
 }
