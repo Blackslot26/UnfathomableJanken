@@ -10,7 +10,7 @@ import java.util.Objects;
  * An element holds an energy value and is associated with a specific {@link ElementType} that determines
  * its combat interactions. An element remains active as long as it has positive energy remaining.
  */
-public final class Element {
+public final class Element{
     private int energy = 100;
     private final ElementType type;
 

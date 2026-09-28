@@ -15,6 +15,6 @@ public class StrategicAI implements AI {
 
     @Override
     public Element chooseElement(Game game) {
-        throw new UnsupportedOperationException("Not implemented");
+        return this.accept(new ChooseElementVisitor(game));
     }
 }
