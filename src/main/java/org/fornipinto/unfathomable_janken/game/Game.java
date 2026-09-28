@@ -23,7 +23,7 @@ public class Game {
     /**
      * Constructs a new {@link Game}.
      *
-     * @param mainPlayer The main human player participating in this game.
+     * @param mainPlayer  The main human player participating in this game.
      * @param enemyPlayer The enemy AI player participating in this game.
      */
     public Game(HumanPlayer mainPlayer, AIPlayer enemyPlayer) {
@@ -56,12 +56,21 @@ public class Game {
     }
 
     /**
-     * Returns the attacking player in the current turn.
+     * Returns true if it is the main human player's turn to attack, false otherwise.
      *
-     * @return The attacker {@link Player} instance.
+     * @return True if the main player is the attacker, false otherwise.
      */
-    public Player getAttacker() {
-        return attacker;
+    public boolean isMainPlayerTurn() {
+        return attacker == mainPlayer;
+    }
+
+    /**
+     * Returns true if it is the enemy AI player's turn to attack, false otherwise.
+     *
+     * @return True if the enemy player is the attacker, false otherwise.
+     */
+    public boolean isEnemyPlayerTurn() {
+        return attacker == enemyPlayer;
     }
 
     private Player getDefender() {

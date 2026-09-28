@@ -1,13 +1,12 @@
 package org.fornipinto.unfathomable_janken.animation.curves;
 
 /**
- * A cubic Bezier curve defined by two control points.
+ * A cubic Bézier curve defined by two control points.
  */
 public final class CubicCurve extends Curve {
     /**
      * A cubic animation curve that starts slowly, speeds up, and then ends slowly.
      */
-    public static final CubicCurve EASE_IN_OUT = new CubicCurve(0.42, 0.0, 0.58, 1.0);
     private static final double CUBIC_ERROR_BOUND = 0.001;
     private final double a;
     private final double b;
@@ -15,7 +14,7 @@ public final class CubicCurve extends Curve {
     private final double d;
 
     /**
-     * Creates a cubic Bezier curve with the given control points.
+     * Creates a cubic Bézier curve with the given control points.
      *
      * @param a The x-coordinate of the first control point.
      * @param b The y-coordinate of the first control point.

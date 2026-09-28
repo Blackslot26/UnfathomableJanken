@@ -29,6 +29,20 @@ public class Animation {
         progress = 0;
     }
 
+
+    /**
+     * Sets the progress of the animation.
+     *
+     * @param progress The progress of the animation, between 0.0 and 1.0.
+     */
+    public void setProgress(double progress) {
+        if (progress < 0.0 || progress > 1.0) {
+            throw new IllegalArgumentException("Progress must be between 0.0 and 1.0");
+        }
+
+        this.progress = progress;
+    }
+
     /**
      * Creates a new repeating animation with the specified duration.
      * <p>
