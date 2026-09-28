@@ -2,15 +2,13 @@ package org.fornipinto.unfathomable_janken.game.player;
 
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.ai.AI;
-import org.fornipinto.unfathomable_janken.game.ai.AIVisitor;
-import org.fornipinto.unfathomable_janken.game.element.Element;
 import org.yaml.snakeyaml.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
+
 
 /**
  * Concrete {@link Player} representing an automated computer opponent powered by an {@link AI} strategy.

@@ -7,10 +7,21 @@ import org.fornipinto.unfathomable_janken.game.Game;
 class ChooseElementVisitor implements AIVisitor<Element> {
     private final Game game;
 
+    /**
+     * Constructs a new {@link ChooseElementVisitor} with the specified game context.
+     *
+     * @param game The game context used to make decisions about element selection.
+     */
     public ChooseElementVisitor(Game game) {
         this.game = game;
     }
-
+ 
+    /**
+     * Chooses a random element from the enemy player's active elements.
+     *
+     * @param ai The RandomAI instance to visit.
+     * @return The chosen {@link Element}.
+     */
     @Override
     public Element visit(RandomAI ai) {
         var activeElements = game.getEnemyPlayer().getActiveElements();
@@ -20,6 +31,13 @@ class ChooseElementVisitor implements AIVisitor<Element> {
         return null;
     }
 
+    /**
+     * 1- Chooses a random element if the main player has no current element.
+     * 2- Chooses the element that inflicts the most damage to the main player's current element regardless of its overall value.
+     * 
+     * @param ai The StrategicAI instance to visit.
+     * @return The chosen {@link Element}.
+     */
     @Override
     public Element visit(StrategicAI ai) {
         if (game.getMainPlayer().getCurrentElement() == null) {
@@ -38,10 +56,21 @@ class ChooseElementVisitor implements AIVisitor<Element> {
         return mejorOpcion;
     }
 
+    /**
+     * Chooses the best element to play based on the current game state and the main player's current element.
+     * <p>
+     * If the main player has no current element, it chooses the element with the least overall value.
+     * Otherwise, it selects the element that can inflict fatal damage to the main player's current element while minimizing its own overall value.
+     * If no fatal damage option is available, it chooses the element that inflicts the most damage while minimizing its own overall value.
+     *
+     * @param ai The SuperAI instance to visit.
+     * @return The chosen {@link Element}.
+     */
     @Override
     public Element visit(SuperAI ai) {
         Element rivalElement = game.getMainPlayer().getCurrentElement();
         var aiDeck = game.getEnemyPlayer().getActiveElements();
+
         if(rivalElement == null) {
             return elegirPeorOpcion();
         } else {

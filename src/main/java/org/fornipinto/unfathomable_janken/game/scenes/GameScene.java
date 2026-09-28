@@ -233,7 +233,7 @@ class ElementTypeIconVisitor implements ElementTypeVisitor<String> {
 
     @Override
     public String visit(WoodElement wood) {
-        return "🌱";
+        return "🪵";
     }
 
     @Override
