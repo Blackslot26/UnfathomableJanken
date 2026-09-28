@@ -74,11 +74,8 @@ public final class Element{
      */
     public int attack(Element other) {
         Objects.requireNonNull(other);
-
         final var damage = other.getType().accept(this.type);
-        if (damage > 0) {
-            other.getDamaged(damage);
-        }
+        other.getDamaged(damage);
         return damage;
     }
 }

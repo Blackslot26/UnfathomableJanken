@@ -228,7 +228,7 @@ class ElementTypeIconVisitor implements ElementTypeVisitor<String> {
 
     @Override
     public String visit(EarthElement earth) {
-        return "🌑";
+        return "🛘";
     }
 
     @Override
@@ -238,7 +238,7 @@ class ElementTypeIconVisitor implements ElementTypeVisitor<String> {
 
     @Override
     public String visit(MetalElement metal) {
-        return "⚔";
+        return "⚙️";
     }
 }
 
@@ -282,7 +282,7 @@ class ElementTypePaintVisitor implements ElementTypeVisitor<Paint> {
 
     @Override
     public Paint visit(EarthElement earth) {
-        return new Paint().withForegroundColor(ColorPalette.BROWN);
+        return new Paint().withForegroundColor(ColorPalette.CLAY);
     }
 
     @Override
