@@ -12,6 +12,7 @@ import org.fornipinto.unfathomable_janken.ui.core.*;
 import org.jline.terminal.KeyEvent;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -101,14 +102,33 @@ public class GameScene implements Scene {
                         new Column(
                             new Text("GAME LOG", Paint.BOLD),
                             new SizedBox(0, 1),
-                            new Flexible(1,
-                                new Column(
-                                    game.getLog()
-                                        .stream()
-                                        .map(logItem -> "• " + logItem.accept(new LogItemDescriptionVisitor()))
-                                        .map(Text::new)
-                                        .toArray(Component[]::new)
-                                ).mainAxisSize(MainAxisSize.MIN)
+                            new Flexible(
+                                1,
+                                new LayoutBuilder(constraints -> {
+                                    final var log = game.getLog();
+                                    final var visibleItems = new ArrayList<Component>();
+                                    final var itemConstraints = new Constraints(0, constraints.maxWidth(), 0, null);
+                                    final var visitor = new LogItemDescriptionVisitor();
+                                    var usedHeight = 0;
+                                    var index = log.size() - 1;
+
+                                    while (index >= 0) {
+                                        final var logItem = log.get(index);
+                                        final var text = new Text("• " + logItem.accept(visitor));
+                                        text.layout(itemConstraints);
+
+                                        if (usedHeight + text.size().height() > constraints.maxHeight()) {
+                                            break;
+                                        }
+
+                                        usedHeight = usedHeight + text.size().height();
+                                        visibleItems.addFirst(text);
+                                        index = index - 1;
+                                    }
+
+                                    return new Column(visibleItems.toArray(Component[]::new))
+                                        .mainAxisSize(MainAxisSize.MIN);
+                                })
                             )
                         )
                     )
