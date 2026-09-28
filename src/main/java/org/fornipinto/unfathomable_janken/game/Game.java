@@ -140,6 +140,15 @@ public class Game {
         return state;
     }
 
+    /**
+     * Returns true if the game has been won by the main player, false otherwise.
+     *
+     * @return True if the main player won, false otherwise.
+     */
+    public boolean wasGameWon() {
+        return state == State.GAME_OVER && attacker == mainPlayer;
+    }
+
     private void selectEnemyNextElement() {
         enemyPlayer.selectNextElement(this);
         log.add(new ElementSelectedLogItem(enemyPlayer, enemyPlayer.getCurrentElement()));

@@ -2,6 +2,7 @@ package org.fornipinto.unfathomable_janken.game.scenes;
 
 import org.fornipinto.unfathomable_janken.animation.Animation;
 import org.fornipinto.unfathomable_janken.animation.curves.CubicCurve;
+import org.fornipinto.unfathomable_janken.engine.Engine;
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.element.*;
@@ -146,6 +147,11 @@ public class GameScene implements Scene {
             }
             game.processTurn();
             progressBarAnimation.play();
+        }
+
+        if (game.getState() == Game.State.GAME_OVER) {
+            final var gameOverScene = new GameOverScene(game.wasGameWon());
+            Engine.context().sceneManager().push(gameOverScene);
         }
     }
 
