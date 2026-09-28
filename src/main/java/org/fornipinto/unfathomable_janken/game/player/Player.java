@@ -1,11 +1,17 @@
 package org.fornipinto.unfathomable_janken.game.player;
 
-import org.fornipinto.unfathomable_janken.game.element.*;
-
 import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+
+import org.fornipinto.unfathomable_janken.game.element.EarthElement;
+import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.element.ElementType;
+import org.fornipinto.unfathomable_janken.game.element.FireElement;
+import org.fornipinto.unfathomable_janken.game.element.MetalElement;
+import org.fornipinto.unfathomable_janken.game.element.WaterElement;
+import org.fornipinto.unfathomable_janken.game.element.WoodElement;
 
 /**
  * Abstract base class representing a player in the game.
@@ -108,7 +114,9 @@ public abstract class Player {
         final List<Supplier<ElementType>> elementGenerators = List.of(
             FireElement::new,
             WaterElement::new,
-            EarthElement::new
+            EarthElement::new,
+            WoodElement::new,
+            MetalElement::new
         );
 
         final var random = new Random();
