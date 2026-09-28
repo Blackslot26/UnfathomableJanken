@@ -140,6 +140,8 @@ public class GameScene implements Scene {
                 final var selectedElement = getSelectedElement();
                 if (selectedElement != null && selectedElement.isActive()) {
                     game.selectElement(game.getMainPlayer(), selectedElement);
+                    damageAnimation.stop();
+                    damageAnimation.setProgress(1.0);
                 }
             }
         }
