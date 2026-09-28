@@ -15,7 +15,7 @@ class ChooseElementVisitor implements AIVisitor<Element> {
     public ChooseElementVisitor(Game game) {
         this.game = game;
     }
- 
+
     /**
      * Chooses a random element from the enemy player's active elements.
      *
@@ -24,17 +24,20 @@ class ChooseElementVisitor implements AIVisitor<Element> {
      */
     @Override
     public Element visit(RandomAI ai) {
-        var activeElements = game.getEnemyPlayer().getActiveElements();
-        if (activeElements != null && !activeElements.isEmpty()) {
+        final var activeElements = game.getEnemyPlayer().getActiveElements();
+
+        if (!activeElements.isEmpty()) {
             return activeElements.get((int) (Math.random() * activeElements.size()));
         }
+
         return null;
     }
 
     /**
-     * 1- Chooses a random element if the main player has no current element.
-     * 2- Chooses the element that inflicts the most damage to the main player's current element regardless of its overall value.
-     * 
+     * Chooses an element from the enemy player's active elements based on the damage inflicted.
+     * <p>
+     * If the main player has no current element, it defaults to a random choice.
+     *
      * @param ai The StrategicAI instance to visit.
      * @return The chosen {@link Element}.
      */
@@ -43,94 +46,120 @@ class ChooseElementVisitor implements AIVisitor<Element> {
         if (game.getMainPlayer().getCurrentElement() == null) {
             return this.visit(new RandomAI());
         }
-        Element rivalElement = game.getMainPlayer().getCurrentElement();
-        Element mejorOpcion = null;
-        int maxDmg = -1;
-        for (Element aiElement : game.getEnemyPlayer().getActiveElements()) {
-            int dmg = rivalElement.getType().<Integer>accept(aiElement.getType());
-            if (dmg > maxDmg) {
-                maxDmg = dmg;
-                mejorOpcion = aiElement;
+
+        final var rivalElement = game.getMainPlayer().getCurrentElement();
+        Element bestChoice = null;
+
+        for (final var element : game.getEnemyPlayer().getActiveElements()) {
+            if (bestChoice == null) {
+                bestChoice = element;
+                continue;
+            }
+
+            final var damage = rivalElement.getType().accept(element.getType());
+            final var bestChoiceDamage = rivalElement.getType().accept(bestChoice.getType());
+
+            if (damage > bestChoiceDamage) {
+                bestChoice = element;
             }
         }
-        return mejorOpcion;
+
+        return bestChoice;
     }
 
     /**
      * Chooses the best element to play based on the current game state and the main player's current element.
      * <p>
      * If the main player has no current element, it chooses the element with the least overall value.
-     * Otherwise, it selects the element that can inflict fatal damage to the main player's current element while minimizing its own overall value.
-     * If no fatal damage option is available, it chooses the element that inflicts the most damage while minimizing its own overall value.
+     * Otherwise, it selects the element that can inflict fatal damage to the main player's current element while
+     * minimizing its own overall value.
+     * <p>
+     * If no fatal damage option is available, it chooses the element that inflicts the most damage while minimizing its
+     * own overall value.
      *
      * @param ai The SuperAI instance to visit.
      * @return The chosen {@link Element}.
      */
     @Override
     public Element visit(SuperAI ai) {
-        Element rivalElement = game.getMainPlayer().getCurrentElement();
-        var aiDeck = game.getEnemyPlayer().getActiveElements();
+        final var rivalElement = game.getMainPlayer().getCurrentElement();
+        final var enemyElements = game.getEnemyPlayer().getActiveElements();
 
-        if(rivalElement == null) {
-            return elegirPeorOpcion();
-        } else {
-            Element mejorRemate = null;
-            int minValorGlobal = Integer.MAX_VALUE;
-            for (Element aiElement : aiDeck) {
-                int dmg = rivalElement.getType().<Integer>accept(aiElement.getType());
-                if (dmg >= rivalElement.getEnergy()) {
-                    if (calcularDmgTotal(aiElement) < minValorGlobal) {
-                        minValorGlobal = calcularDmgTotal(aiElement);
-                        mejorRemate = aiElement;
-                    }
+        if (rivalElement == null) {
+            return selectWorstOption();
+        }
+
+        Element bestChoice = null;
+        var minimumGlobalValue = Integer.MAX_VALUE;
+
+        for (final var element : enemyElements) {
+            final var damage = rivalElement.getType().accept(element.getType());
+
+            if (damage >= rivalElement.getEnergy()) {
+                final var globalValue = computeTotalDamage(element);
+
+                if (globalValue < minimumGlobalValue) {
+                    minimumGlobalValue = globalValue;
+                    bestChoice = element;
                 }
             }
-            if(mejorRemate != null) {
-                return mejorRemate;
-            } else {
-                int maxDmg = -1;
-                Element mejorOpcion = null;
-                int minGlobalValue = Integer.MAX_VALUE;
-                for (Element aiElement : aiDeck) {
-                    int dmg = rivalElement.getType().<Integer>accept(aiElement.getType());
-                    if (dmg > maxDmg) {
-                        maxDmg = dmg;
-                        mejorOpcion = aiElement;
-                        minGlobalValue = calcularDmgTotal(aiElement);
-                    } else if (dmg == maxDmg) {
-                        int valorGlobal = calcularDmgTotal(aiElement);
-                        if (valorGlobal < minGlobalValue) {
-                            minGlobalValue = valorGlobal;
-                            mejorOpcion = aiElement;
-                        }
-                    }
+        }
+
+        if (bestChoice != null) {
+            return bestChoice;
+        }
+
+        for (final var element : enemyElements) {
+            if (bestChoice == null) {
+                bestChoice = element;
+                minimumGlobalValue = computeTotalDamage(element);
+                continue;
+            }
+
+            final var damage = rivalElement.getType().accept(element.getType());
+            final var bestChoiceDamage = rivalElement.getType().accept(bestChoice.getType());
+
+            if (damage > bestChoiceDamage) {
+                bestChoice = element;
+                minimumGlobalValue = computeTotalDamage(element);
+            } else if (damage.equals(bestChoiceDamage)) {
+                final var globalValue = computeTotalDamage(element);
+
+                if (globalValue < minimumGlobalValue) {
+                    minimumGlobalValue = globalValue;
+                    bestChoice = element;
                 }
-                return mejorOpcion;
             }
         }
-        
+
+        return bestChoice;
     }
 
-    private Element elegirPeorOpcion() {
-        Element peorOpcion = null;
-        int minDmg = Integer.MAX_VALUE;
-        for (Element aiElement : game.getEnemyPlayer().getActiveElements()) {
-            int localDmgTotal = calcularDmgTotal(aiElement);
-            if (localDmgTotal < minDmg) {
-                minDmg = localDmgTotal;
-                peorOpcion = aiElement;
+    private Element selectWorstOption() {
+        Element worstChoice = null;
+        var minimumDamage = Integer.MAX_VALUE;
+
+        for (final var element : game.getEnemyPlayer().getActiveElements()) {
+            final var totalDamage = computeTotalDamage(element);
+
+            if (totalDamage < minimumDamage) {
+                minimumDamage = totalDamage;
+                worstChoice = element;
             }
         }
-        return peorOpcion;
+
+        return worstChoice;
     }
 
-    private int calcularDmgTotal(Element aiElement) {
-        int dmgTotal = 0;
-        for (Element playerElement : game.getMainPlayer().getActiveElements()) {
-            int dmgHecho = playerElement.getType().<Integer>accept(aiElement.getType());
-            int dmgRecibido = aiElement.getType().<Integer>accept(playerElement.getType());
-            dmgTotal += dmgHecho - dmgRecibido;
+    private int computeTotalDamage(Element aiElement) {
+        var totalDamage = 0;
+
+        for (final var playerElement : game.getMainPlayer().getActiveElements()) {
+            final var dealtDamage = playerElement.getType().accept(aiElement.getType());
+            final var receivedDamage = aiElement.getType().accept(playerElement.getType());
+            totalDamage = totalDamage + dealtDamage - receivedDamage;
         }
-        return dmgTotal;
+
+        return totalDamage;
     }
 }

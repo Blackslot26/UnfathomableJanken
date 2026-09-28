@@ -10,7 +10,7 @@ import org.fornipinto.unfathomable_janken.game.player.Player;
  * An element holds an energy value and is associated with a specific {@link ElementType} that determines
  * its combat interactions. An element remains active as long as it has positive energy remaining.
  */
-public final class Element{
+public final class Element {
     private int energy = 100;
     private final ElementType type;
 
@@ -20,7 +20,7 @@ public final class Element{
      * @param type The {@link ElementType} associated with this element.
      */
     public Element(ElementType type) {
-        this.type = type;
+        this.type = Objects.requireNonNull(type);
     }
 
     /**

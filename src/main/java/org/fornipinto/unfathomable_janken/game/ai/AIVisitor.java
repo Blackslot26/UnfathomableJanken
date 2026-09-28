@@ -1,5 +1,10 @@
 package org.fornipinto.unfathomable_janken.game.ai;
 
+/**
+ * Visitor interface for AI strategies, allowing operations to be performed on different types of AI implementations.
+ *
+ * @param <R> The return type of the visitor's operation.
+ */
 public interface AIVisitor<R> {
     /**
      * Visits a RandomAI instance and performs an operation on it.
