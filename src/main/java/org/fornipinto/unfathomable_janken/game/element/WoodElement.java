@@ -26,7 +26,7 @@ public class WoodElement implements ElementType {
 
     @Override
     public Integer visit(WoodElement woodElement) {
-        return 10;
+        return 35;
     }
 
     @Override

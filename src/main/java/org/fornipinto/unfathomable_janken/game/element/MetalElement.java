@@ -31,6 +31,6 @@ public class MetalElement implements ElementType {
 
     @Override
     public Integer visit(MetalElement metalElement) {
-        return 10;
+        return 35;
     }
 }

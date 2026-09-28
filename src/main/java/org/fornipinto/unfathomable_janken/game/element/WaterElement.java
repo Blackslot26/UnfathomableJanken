@@ -16,7 +16,7 @@ public class WaterElement implements ElementType {
 
     @Override
     public Integer visit(WaterElement waterElement) {
-        return 10;
+        return 35;
     }
 
     @Override

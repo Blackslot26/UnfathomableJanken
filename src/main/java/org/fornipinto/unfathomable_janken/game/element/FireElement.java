@@ -12,7 +12,7 @@ public class FireElement implements ElementType {
 
     @Override
     public Integer visit(FireElement fireElement) {
-        return 10;
+        return 35;
     }
 
     @Override

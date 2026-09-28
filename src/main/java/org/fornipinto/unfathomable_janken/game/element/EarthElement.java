@@ -21,7 +21,7 @@ public class EarthElement implements ElementType {
 
     @Override
     public Integer visit(EarthElement earthElement) {
-        return 10;
+        return 35;
     }
 
     @Override
