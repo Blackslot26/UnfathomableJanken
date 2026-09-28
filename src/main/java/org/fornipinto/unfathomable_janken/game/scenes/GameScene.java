@@ -1,5 +1,8 @@
 package org.fornipinto.unfathomable_janken.game.scenes;
 
+import org.fornipinto.unfathomable_janken.animation.Animation;
+import org.fornipinto.unfathomable_janken.animation.curves.CubicCurve;
+import org.fornipinto.unfathomable_janken.engine.Engine;
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.element.*;
@@ -9,12 +12,17 @@ import org.fornipinto.unfathomable_janken.ui.components.*;
 import org.fornipinto.unfathomable_janken.ui.core.*;
 import org.jline.terminal.KeyEvent;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
  * A scene that renders the game.
  */
 public class GameScene implements Scene {
+    private final Animation progressBarAnimation;
+    private final Animation damageAnimation;
+
     private final Game game;
 
     private int selectedElementIndex = 0;
@@ -26,14 +34,17 @@ public class GameScene implements Scene {
      */
     public GameScene(Game game) {
         this.game = Objects.requireNonNull(game);
+        progressBarAnimation = new Animation(Duration.ofSeconds(1));
+        damageAnimation = new Animation(Duration.ofMillis(150));
+        damageAnimation.setProgress(1.0); // Start at 1.0 to keep player white until first attack
     }
 
     @Override
     public Component build() {
-        final Component selectElementBox;
+        final Component mainAreaComponent;
 
         if (game.getState() == Game.State.SELECTING_ELEMENT) {
-            selectElementBox = new Box(
+            mainAreaComponent = new Box(
                 Border.SINGLE,
                 new Padding(
                     EdgeInsets.all(1),
@@ -42,13 +53,27 @@ public class GameScene implements Scene {
                         new SizedBox(0, 1),
                         new Text("Press ENTER to confirm."),
                         new SizedBox(0, 1),
-                        new ElementCard(getSelectedElement(), false, true)
+                        new ElementCard(getSelectedElement(), false, true, null)
                     ).crossAxisAlignment(CrossAxisAlignment.CENTER)
                         .mainAxisSize(MainAxisSize.MIN)
                 )
             );
+        } else if (game.getState() == Game.State.READY_TO_ATTACK) {
+            final var playerProgressBarAnimation = game.isMainPlayerTurn() ? progressBarAnimation : null;
+            final var enemyProgressBarAnimation = game.isEnemyPlayerTurn() ? progressBarAnimation : null;
+            final var playerDamageAnimation = game.isMainPlayerTurn() ? damageAnimation : null;
+            final var enemyDamageAnimation = game.isEnemyPlayerTurn() ? damageAnimation : null;
+
+            mainAreaComponent = new BattleArea(
+                playerProgressBarAnimation,
+                enemyProgressBarAnimation,
+                playerDamageAnimation,
+                enemyDamageAnimation,
+                game.getMainPlayer().getCurrentElement(),
+                game.getEnemyPlayer().getCurrentElement()
+            );
         } else {
-            selectElementBox = new SizedBox();
+            mainAreaComponent = new SizedBox();
         }
 
         final var enemyHighlightedElement = game.getEnemyPlayer().getCurrentElement();
@@ -65,7 +90,7 @@ public class GameScene implements Scene {
                             1,
                             new Align(
                                 Alignment.CENTER,
-                                selectElementBox
+                                mainAreaComponent
                             )
                         ),
                         new PlayerPanel(game.getMainPlayer(), playerHighlightedElement, true)
@@ -78,14 +103,33 @@ public class GameScene implements Scene {
                         new Column(
                             new Text("GAME LOG", Paint.BOLD),
                             new SizedBox(0, 1),
-                            new Flexible(1,
-                                new Column(
-                                    game.getLog()
-                                        .stream()
-                                        .map(logItem -> "• " + logItem.accept(new LogItemDescriptionVisitor()))
-                                        .map(Text::new)
-                                        .toArray(Component[]::new)
-                                ).mainAxisSize(MainAxisSize.MIN)
+                            new Flexible(
+                                1,
+                                new LayoutBuilder(constraints -> {
+                                    final var log = game.getLog();
+                                    final var visibleItems = new ArrayList<Component>();
+                                    final var itemConstraints = new Constraints(0, constraints.maxWidth(), 0, null);
+                                    final var visitor = new LogItemDescriptionVisitor();
+                                    var usedHeight = 0;
+                                    var index = log.size() - 1;
+
+                                    while (index >= 0) {
+                                        final var logItem = log.get(index);
+                                        final var text = new Text("• " + logItem.accept(visitor));
+                                        text.layout(itemConstraints);
+
+                                        if (usedHeight + text.size().height() > constraints.maxHeight()) {
+                                            break;
+                                        }
+
+                                        usedHeight = usedHeight + text.size().height();
+                                        visibleItems.addFirst(text);
+                                        index = index - 1;
+                                    }
+
+                                    return new Column(visibleItems.toArray(Component[]::new))
+                                        .mainAxisSize(MainAxisSize.MIN);
+                                })
                             )
                         )
                     )
@@ -96,9 +140,19 @@ public class GameScene implements Scene {
 
     @Override
     public void onUpdate(long deltaTime) {
-//        if (state == GameSceneState.RUNNING) {
-//            game.processTurn();
-//        }
+        if (!progressBarAnimation.playing()) {
+            progressBarAnimation.stop();
+            if (game.getState() == Game.State.READY_TO_ATTACK) {
+                damageAnimation.play();
+            }
+            game.processTurn();
+            progressBarAnimation.play();
+        }
+
+        if (game.getState() == Game.State.GAME_OVER) {
+            final var gameOverScene = new GameOverScene(game.wasGameWon());
+            Engine.context().sceneManager().push(gameOverScene);
+        }
     }
 
     @Override
@@ -112,11 +166,17 @@ public class GameScene implements Scene {
                 final var selectedElement = getSelectedElement();
                 if (selectedElement != null && selectedElement.isActive()) {
                     game.selectElement(game.getMainPlayer(), selectedElement);
+                    damageAnimation.stop();
+                    damageAnimation.setProgress(1.0);
                 }
             }
-        } else if (event.getSpecial() == KeyEvent.Special.Enter) {
-            game.processTurn();
         }
+    }
+
+    @Override
+    public void dispose() {
+        damageAnimation.dispose();
+        progressBarAnimation.dispose();
     }
 
     private Element getSelectedElement() {
@@ -231,12 +291,58 @@ final class PlayerPanel extends Composent {
                         element -> new ElementCard(
                             element,
                             highlightedElement == element,
-                            highlightedElement == element || !element.isActive() || isRevealed
+                            highlightedElement == element || !element.isActive() || isRevealed,
+                            null
                         )
                     )
                     .toArray(Component[]::new)
             )
         ).crossAxisAlignment(CrossAxisAlignment.CENTER);
+    }
+}
+
+final class BattleArea extends Composent {
+    private final Animation playerProgressBarAnimation;
+    private final Animation enemyProgressBarAnimation;
+    private final Animation playerDamageAnimation;
+    private final Animation enemyDamageAnimation;
+    private final Element playerElement;
+    private final Element enemyElement;
+
+    BattleArea(Animation playerProgressBarAnimation, Animation enemyProgressBarAnimation, Animation playerDamageAnimation, Animation enemyDamageAnimation, Element playerElement, Element enemyElement) {
+        this.playerProgressBarAnimation = playerProgressBarAnimation;
+        this.enemyProgressBarAnimation = enemyProgressBarAnimation;
+        this.playerDamageAnimation = playerDamageAnimation;
+        this.enemyDamageAnimation = enemyDamageAnimation;
+        this.playerElement = playerElement;
+        this.enemyElement = enemyElement;
+    }
+
+
+    @Override
+    public Component build() {
+        if (playerElement == null || enemyElement == null) {
+            return new SizedBox(0, 0);
+        }
+
+        final var playerProgress = CubicCurve.EASE_IN.transform(playerProgressBarAnimation == null ? 0.0 : playerProgressBarAnimation.progress());
+        final var enemyProgress = CubicCurve.EASE_IN.transform(enemyProgressBarAnimation == null ? 0.0 : enemyProgressBarAnimation.progress());
+
+        return new Row(
+            new Column(
+                new ElementCard(playerElement, false, true, playerDamageAnimation),
+                new ProgressBar(playerProgress)
+            ).mainAxisSize(MainAxisSize.MIN)
+                .crossAxisAlignment(CrossAxisAlignment.STRETCH),
+            new Text("    ✕    "),
+            new Column(
+                new ElementCard(enemyElement, false, true, enemyDamageAnimation),
+                new ProgressBar(enemyProgress)
+            ).mainAxisSize(MainAxisSize.MIN)
+                .crossAxisAlignment(CrossAxisAlignment.STRETCH)
+        )
+            .mainAxisSize(MainAxisSize.MIN)
+            .crossAxisAlignment(CrossAxisAlignment.CENTER);
     }
 }
 
@@ -247,11 +353,13 @@ final class ElementCard extends Composent {
     private final Element element;
     private final boolean isSelected;
     private final boolean isRevealed;
+    private final Animation damageAnimation;
 
-    ElementCard(Element element, boolean isSelected, boolean isRevealed) {
+    ElementCard(Element element, boolean isSelected, boolean isRevealed, Animation damageAnimation) {
         this.element = Objects.requireNonNull(element);
         this.isSelected = isSelected;
         this.isRevealed = isRevealed;
+        this.damageAnimation = damageAnimation;
     }
 
     @Override
@@ -262,25 +370,40 @@ final class ElementCard extends Composent {
         final var elementNamePaint = getElementPaint();
         final var energyPaint = element.isActive() ? new Paint() : disabledPaint;
 
-        final Paint boxPaint;
+        final Color baseColor;
         if (isSelected) {
-            boxPaint = new Paint().withBold(true).withForegroundColor(ColorPalette.BANANA);
+            baseColor = ColorPalette.BANANA;
         } else if (element.isActive()) {
-            boxPaint = new Paint();
+            baseColor = ColorPalette.WHITE;
         } else {
-            boxPaint = disabledPaint;
+            baseColor = ColorPalette.COOL_GRAY;
         }
 
-        return new Box(
-            Border.SINGLE,
-            new Padding(
-                EdgeInsets.all(1),
-                new Column(
-                    new Text(icon + " " + name, elementNamePaint),
-                    new Text(element.getEnergy() + " / 100", energyPaint)
+        final Color finalColor;
+        if (damageAnimation != null) {
+            finalColor = Color.lerp(ColorPalette.VERMILION, baseColor, damageAnimation.progress());
+        } else {
+            finalColor = baseColor;
+        }
+
+        final var boxPaint = new Paint().withForegroundColor(finalColor);
+
+        return new ConstrainedBox(
+            Constraints.tightWidth(15),
+            new Box(
+                Border.SINGLE,
+                new Padding(
+                    EdgeInsets.all(1),
+                    new Align(
+                        Alignment.CENTER,
+                        new Column(
+                            new Text(icon + " " + name, elementNamePaint),
+                            new Text(element.getEnergy() + " / 100", energyPaint)
+                        ).crossAxisAlignment(CrossAxisAlignment.CENTER)
+                    )
                 )
-            )
-        ).withPaint(boxPaint);
+            ).withPaint(boxPaint)
+        );
     }
 
     String getElementIcon() {
