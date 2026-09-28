@@ -5,17 +5,47 @@ import org.fornipinto.unfathomable_janken.animation.curves.CubicCurve;
 import org.fornipinto.unfathomable_janken.engine.Engine;
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
-import org.fornipinto.unfathomable_janken.game.element.*;
-import org.fornipinto.unfathomable_janken.game.log.*;
+import org.fornipinto.unfathomable_janken.game.element.EarthElement;
+import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.element.ElementTypeVisitor;
+import org.fornipinto.unfathomable_janken.game.element.FireElement;
+import org.fornipinto.unfathomable_janken.game.element.MetalElement;
+import org.fornipinto.unfathomable_janken.game.element.WaterElement;
+import org.fornipinto.unfathomable_janken.game.element.WoodElement;
+import org.fornipinto.unfathomable_janken.game.log.ElementAttackedLogItem;
+import org.fornipinto.unfathomable_janken.game.log.ElementSelectedLogItem;
+import org.fornipinto.unfathomable_janken.game.log.GameOverLogItem;
+import org.fornipinto.unfathomable_janken.game.log.GameStartedLogItem;
+import org.fornipinto.unfathomable_janken.game.log.LogItemVisitor;
 import org.fornipinto.unfathomable_janken.game.player.Player;
-import org.fornipinto.unfathomable_janken.ui.components.*;
-import org.fornipinto.unfathomable_janken.ui.core.*;
+import org.fornipinto.unfathomable_janken.ui.components.Align;
+import org.fornipinto.unfathomable_janken.ui.components.Box;
+import org.fornipinto.unfathomable_janken.ui.components.Column;
+import org.fornipinto.unfathomable_janken.ui.components.ConstrainedBox;
+import org.fornipinto.unfathomable_janken.ui.components.Flexible;
+import org.fornipinto.unfathomable_janken.ui.components.LayoutBuilder;
+import org.fornipinto.unfathomable_janken.ui.components.Padding;
+import org.fornipinto.unfathomable_janken.ui.components.ProgressBar;
+import org.fornipinto.unfathomable_janken.ui.components.Row;
+import org.fornipinto.unfathomable_janken.ui.components.SizedBox;
+import org.fornipinto.unfathomable_janken.ui.components.Spacer;
+import org.fornipinto.unfathomable_janken.ui.components.Text;
+import org.fornipinto.unfathomable_janken.ui.core.Alignment;
+import org.fornipinto.unfathomable_janken.ui.core.Border;
+import org.fornipinto.unfathomable_janken.ui.core.ColorPalette;
+import org.fornipinto.unfathomable_janken.ui.core.Component;
+import org.fornipinto.unfathomable_janken.ui.core.Composent;
+import org.fornipinto.unfathomable_janken.ui.core.Constraints;
+import org.fornipinto.unfathomable_janken.ui.core.CrossAxisAlignment;
+import org.fornipinto.unfathomable_janken.ui.core.Color;
+import org.fornipinto.unfathomable_janken.ui.core.EdgeInsets;
+import org.fornipinto.unfathomable_janken.ui.core.MainAxisSize;
+import org.fornipinto.unfathomable_janken.ui.core.Paint;
 import org.jline.terminal.KeyEvent;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Objects;
-
 /**
  * A scene that renders the game.
  */
@@ -198,7 +228,17 @@ class ElementTypeIconVisitor implements ElementTypeVisitor<String> {
 
     @Override
     public String visit(EarthElement earth) {
+        return "🌑";
+    }
+
+    @Override
+    public String visit(WoodElement wood) {
         return "🌱";
+    }
+
+    @Override
+    public String visit(MetalElement metal) {
+        return "⚔";
     }
 }
 
@@ -217,6 +257,16 @@ class ElementTypeNameVisitor implements ElementTypeVisitor<String> {
     public String visit(EarthElement earth) {
         return "Earth";
     }
+
+    @Override
+    public String visit(WoodElement wood) {
+        return "Wood";
+    }
+
+    @Override
+    public String visit(MetalElement metal) {
+        return "Metal";
+    }
 }
 
 class ElementTypePaintVisitor implements ElementTypeVisitor<Paint> {
@@ -233,6 +283,16 @@ class ElementTypePaintVisitor implements ElementTypeVisitor<Paint> {
     @Override
     public Paint visit(EarthElement earth) {
         return new Paint().withForegroundColor(ColorPalette.MINT_GREEN);
+    }
+
+    @Override
+    public Paint visit(WoodElement wood) {
+        return new Paint().withForegroundColor(ColorPalette.EMERALD);
+    }
+
+    @Override
+    public Paint visit(MetalElement metal) {
+        return new Paint().withForegroundColor(ColorPalette.LAVENDER_GRAY);
     }
 }
 

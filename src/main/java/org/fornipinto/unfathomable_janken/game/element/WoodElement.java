@@ -1,9 +1,9 @@
 package org.fornipinto.unfathomable_janken.game.element;
 
 /**
- * Concrete implementation of {@link ElementType} representing the Water element.
+ * Concrete implementation of {@link ElementType} representing the Wood element.
  */
-public class WaterElement implements ElementType {
+public class WoodElement implements ElementType {
     @Override
     public <R> R accept(ElementTypeVisitor<R> visitor) {
         return visitor.visit(this);
@@ -11,22 +11,22 @@ public class WaterElement implements ElementType {
 
     @Override
     public Integer visit(FireElement fireElement) {
-        return 60;
+        return 30;
     }
 
     @Override
     public Integer visit(WaterElement waterElement) {
-        return 35;
+        return 40;
     }
 
     @Override
     public Integer visit(EarthElement earthElement) {
-        return 20;
+        return 60;
     }
 
     @Override
     public Integer visit(WoodElement woodElement) {
-        return 30;
+        return 35;
     }
 
     @Override
