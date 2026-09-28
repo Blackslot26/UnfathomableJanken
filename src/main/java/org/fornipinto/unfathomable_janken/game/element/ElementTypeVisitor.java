@@ -29,4 +29,20 @@ public interface ElementTypeVisitor<R> {
      * @return The result of visiting the earth element.
      */
     R visit(EarthElement earth);
+
+    /**
+     * Visits a {@link WoodElement}.
+     *
+     * @param wood The wood element to visit.
+     * @return The result of visiting the wood element.
+     */
+    R visit(WoodElement wood);
+
+    /**
+     * Visits a {@link MetalElement}.
+     *
+     * @param metal The metal element to visit.
+     * @return The result of visiting the metal element.
+     */
+    R visit(MetalElement metal);
 }

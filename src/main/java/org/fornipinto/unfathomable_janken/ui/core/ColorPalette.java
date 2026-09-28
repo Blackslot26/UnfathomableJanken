@@ -122,6 +122,6 @@ public abstract class ColorPalette {
      * Defined by the RGB values (255, 255, 255).
      */
     public static final Color WHITE = new Color(255, 255, 255);
-
+    
     private ColorPalette() {}
 }

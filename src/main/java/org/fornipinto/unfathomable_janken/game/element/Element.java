@@ -1,8 +1,8 @@
 package org.fornipinto.unfathomable_janken.game.element;
 
-import org.fornipinto.unfathomable_janken.game.player.Player;
-
 import java.util.Objects;
+
+import org.fornipinto.unfathomable_janken.game.player.Player;
 
 /**
  * Represents an elemental entity possessed by a {@link Player}.
@@ -74,7 +74,6 @@ public final class Element{
      */
     public int attack(Element other) {
         Objects.requireNonNull(other);
-
         final var damage = other.getType().accept(this.type);
         other.getDamaged(damage);
         return damage;

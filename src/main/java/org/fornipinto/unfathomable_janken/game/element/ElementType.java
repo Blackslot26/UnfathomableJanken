@@ -35,4 +35,18 @@ public interface ElementType extends ElementTypeVisitor<Integer> {
      * @return The damage value inflicted on an earth element.
      */
     Integer visit(EarthElement earthElement);
+
+    /**
+     * Computes damage against a wood element.
+     *
+     * @return The damage value inflicted on a wood element.
+     */
+    Integer visit(WoodElement woodElement);
+
+    /**
+     * Computes damage against a metal element.
+     *
+     * @return The damage value inflicted on a metal element.
+     */
+    Integer visit(MetalElement metalElement);
 }
