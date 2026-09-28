@@ -11,17 +11,17 @@ public class WoodElement implements ElementType {
 
     @Override
     public Integer visit(FireElement fireElement) {
-        return 30;
+        return 20;
     }
 
     @Override
     public Integer visit(WaterElement waterElement) {
-        return 40;
+        return 30;
     }
 
     @Override
     public Integer visit(EarthElement earthElement) {
-        return 60;
+        return 40;
     }
 
     @Override
@@ -31,6 +31,6 @@ public class WoodElement implements ElementType {
 
     @Override
     public Integer visit(MetalElement metalElement) {
-        return 20;
+        return 60;
     }
 }

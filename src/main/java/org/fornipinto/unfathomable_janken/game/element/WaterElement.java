@@ -26,11 +26,11 @@ public class WaterElement implements ElementType {
 
     @Override
     public Integer visit(WoodElement woodElement) {
-        return 30;
+        return 40;
     }
 
     @Override
     public Integer visit(MetalElement metalElement) {
-        return 20;
+        return 30;
     }
 }
