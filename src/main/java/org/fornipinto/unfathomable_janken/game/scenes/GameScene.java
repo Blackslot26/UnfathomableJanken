@@ -282,7 +282,7 @@ class ElementTypePaintVisitor implements ElementTypeVisitor<Paint> {
 
     @Override
     public Paint visit(EarthElement earth) {
-        return new Paint().withForegroundColor(ColorPalette.MINT_GREEN);
+        return new Paint().withForegroundColor(ColorPalette.BROWN);
     }
 
     @Override
