@@ -2,7 +2,6 @@ package org.fornipinto.unfathomable_janken.game.scenes;
 
 import org.fornipinto.unfathomable_janken.animation.Animation;
 import org.fornipinto.unfathomable_janken.animation.curves.CubicCurve;
-import org.fornipinto.unfathomable_janken.animation.curves.Curve;
 import org.fornipinto.unfathomable_janken.engine.Scene;
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.element.*;
@@ -367,9 +366,12 @@ final class ElementCard extends Composent {
                 Border.SINGLE,
                 new Padding(
                     EdgeInsets.all(1),
-                    new Column(
-                        new Text(icon + " " + name, elementNamePaint),
-                        new Text(element.getEnergy() + " / 100", energyPaint)
+                    new Align(
+                        Alignment.CENTER,
+                        new Column(
+                            new Text(icon + " " + name, elementNamePaint),
+                            new Text(element.getEnergy() + " / 100", energyPaint)
+                        ).crossAxisAlignment(CrossAxisAlignment.CENTER)
                     )
                 )
             ).withPaint(boxPaint)
