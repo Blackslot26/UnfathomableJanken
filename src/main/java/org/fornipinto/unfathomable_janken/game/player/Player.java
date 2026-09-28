@@ -1,6 +1,7 @@
 package org.fornipinto.unfathomable_janken.game.player;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -20,14 +21,28 @@ import org.fornipinto.unfathomable_janken.game.element.WoodElement;
  * {@link Element} selected for the current turn.
  */
 public abstract class Player {
+    private final String name;
     private final List<Element> elements;
     protected Element currentElement;
 
     /**
-     * Constructs a new {@link Player}.
+     * Constructs a new {@link Player} with 6 randomly generated elements.
+     *
+     * @param name The name of the player.
      */
-    protected Player() {
-        this.elements = generateRandomElements(6);
+    protected Player(String name) {
+        this(name, generateRandomElements(6));
+    }
+
+    /**
+     * Constructs a new {@link Player} with the specified elements.
+     *
+     * @param name     The name of the player.
+     * @param elements The initial list of elements possessed by this player.
+     */
+    protected Player(String name, List<Element> elements) {
+        this.name = Objects.requireNonNull(name);
+        this.elements = List.copyOf(Objects.requireNonNull(elements));
     }
 
     /**
@@ -35,7 +50,25 @@ public abstract class Player {
      *
      * @return The player name.
      */
-    public abstract String getName();
+    public final String getName() {
+        return name;
+    }
+
+    /**
+     * Validates and assigns the active element to be used by this player.
+     *
+     * @param element The {@link Element} to set as current.
+     */
+    protected final void assignCurrentElement(Element element) {
+        Objects.requireNonNull(element, "Selected element cannot be null.");
+        if (!elements.contains(element)) {
+            throw new IllegalArgumentException("Cannot select an element that does not belong to this player.");
+        }
+        if (!element.isActive()) {
+            throw new IllegalArgumentException("Cannot select an inactive element.");
+        }
+        this.currentElement = element;
+    }
 
     /**
      * Checks whether the player still has any active elements available for combat.
@@ -110,7 +143,7 @@ public abstract class Player {
         return damage;
     }
 
-    protected final List<Element> generateRandomElements(int count) {
+    protected static List<Element> generateRandomElements(int count) {
         final List<Supplier<ElementType>> elementGenerators = List.of(
             FireElement::new,
             WaterElement::new,

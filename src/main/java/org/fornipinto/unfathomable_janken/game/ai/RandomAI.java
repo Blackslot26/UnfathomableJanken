@@ -14,6 +14,12 @@ public class RandomAI implements AI {
 
     @Override
     public Element chooseElement(Game game) {
-        return this.accept(new ChooseElementVisitor(game));
+        final var activeElements = game.getEnemyPlayer().getActiveElements();
+
+        if (!activeElements.isEmpty()) {
+            return activeElements.get((int) (Math.random() * activeElements.size()));
+        }
+
+        return null;
     }
 }

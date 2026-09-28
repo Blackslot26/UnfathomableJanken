@@ -170,13 +170,13 @@ public class GameScene implements Scene {
 
     @Override
     public void onUpdate(long deltaTime) {
-        if (!progressBarAnimation.playing()) {
+        if (game.getState() == Game.State.READY_TO_ATTACK && !progressBarAnimation.playing()) {
             progressBarAnimation.stop();
-            if (game.getState() == Game.State.READY_TO_ATTACK) {
-                damageAnimation.play();
-            }
+            damageAnimation.play();
             game.processTurn();
-            progressBarAnimation.play();
+            if (game.getState() == Game.State.READY_TO_ATTACK) {
+                progressBarAnimation.play();
+            }
         }
 
         if (game.getState() == Game.State.GAME_OVER) {
@@ -198,6 +198,8 @@ public class GameScene implements Scene {
                     game.selectElement(game.getMainPlayer(), selectedElement);
                     damageAnimation.stop();
                     damageAnimation.setProgress(1.0);
+                    progressBarAnimation.stop();
+                    progressBarAnimation.play();
                 }
             }
         }
@@ -228,7 +230,7 @@ class ElementTypeIconVisitor implements ElementTypeVisitor<String> {
 
     @Override
     public String visit(EarthElement earth) {
-        return "🛘";
+        return "🪨";
     }
 
     @Override
@@ -238,7 +240,7 @@ class ElementTypeIconVisitor implements ElementTypeVisitor<String> {
 
     @Override
     public String visit(MetalElement metal) {
-        return "⚙️";
+        return "🔩";
     }
 }
 

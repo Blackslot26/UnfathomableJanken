@@ -118,5 +118,21 @@ class CanvasTest {
         for (AttributedString line : waterCanvas.toAttributedStrings()) {
             assertEquals(10, line.columnLength(), "Every line in Box with 💧 must have columnLength 10");
         }
+
+        for (String icon : List.of("💧", "🔥", "🪨", "🪵", "🔩", "❓", "💀")) {
+            assertEquals(1, icon.codePoints().count(), "Icon " + icon + " must be a single code point for Canvas tile storage");
+            assertEquals(2, Unicode.charWidth(icon.codePointAt(0)), "Icon " + icon + " must have WCWidth of 2");
+
+            final Text iconText = new Text(icon + " Test");
+            final org.fornipinto.unfathomable_janken.ui.components.Box iconBox =
+                new org.fornipinto.unfathomable_janken.ui.components.Box(Border.SINGLE, iconText);
+            iconBox.layout(new Constraints(0, null, 0, null));
+
+            final Canvas iconCanvas = new Canvas(iconBox);
+            iconBox.draw(iconCanvas);
+            for (AttributedString line : iconCanvas.toAttributedStrings()) {
+                assertEquals(9, line.columnLength(), "Every line in Box with " + icon + " must have columnLength 9");
+            }
+        }
     }
 }

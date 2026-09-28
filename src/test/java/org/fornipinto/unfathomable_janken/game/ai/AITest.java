@@ -3,35 +3,27 @@ package org.fornipinto.unfathomable_janken.game.ai;
 import org.fornipinto.unfathomable_janken.game.Game;
 import org.fornipinto.unfathomable_janken.game.element.EarthElement;
 import org.fornipinto.unfathomable_janken.game.element.Element;
+import org.fornipinto.unfathomable_janken.game.element.ElementType;
+import org.fornipinto.unfathomable_janken.game.element.ElementTypeVisitor;
 import org.fornipinto.unfathomable_janken.game.element.FireElement;
 import org.fornipinto.unfathomable_janken.game.element.MetalElement;
 import org.fornipinto.unfathomable_janken.game.element.WaterElement;
 import org.fornipinto.unfathomable_janken.game.element.WoodElement;
 import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
 import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
-import org.fornipinto.unfathomable_janken.game.player.Player;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ChooseElementVisitorTest {
-
-    private static void setPlayerElements(Player player, List<Element> elements) {
-        try {
-            final var field = Player.class.getDeclaredField("elements");
-            field.setAccessible(true);
-            field.set(player, elements);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
+class AITest {
 
     @Test
     void testRandomAIChoosesActiveElementOrNullWhenEmpty() {
+        final var randomAI = new RandomAI();
         final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new RandomAI());
+        final var aiPlayer = new AIPlayer("AI", randomAI);
         final var game = new Game(human, aiPlayer);
 
         final var chosen = aiPlayer.getCurrentElement();
@@ -43,14 +35,13 @@ class ChooseElementVisitorTest {
             element.getDamaged(100);
         }
 
-        final var visitor = new ChooseElementVisitor(game);
-        assertNull(visitor.visit(new RandomAI()));
+        assertNull(randomAI.chooseElement(game));
     }
 
     @Test
     void testStrategicAIFallsBackToRandomWhenRivalHasNoCurrentElement() {
         final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new StrategicAI());
+        final var aiPlayer = new AIPlayer("AI", new StrategicAI());
         final var game = new Game(human, aiPlayer);
 
         assertNull(human.getCurrentElement());
@@ -60,114 +51,99 @@ class ChooseElementVisitorTest {
 
     @Test
     void testStrategicAIChoosesHighestDamageElementAgainstRival() {
-        final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new StrategicAI());
-
         final var rivalFire = new Element(new FireElement());
-        setPlayerElements(human, List.of(rivalFire));
+        final var human = new HumanPlayer("Player", List.of(rivalFire));
 
         // Against Fire: Metal deals 20, Wood deals 30, Fire deals 35, Earth deals 40, Water deals 60
         final var aiMetal = new Element(new MetalElement());
         final var aiWood = new Element(new WoodElement());
         final var aiWater = new Element(new WaterElement());
         final var aiEarth = new Element(new EarthElement());
-        setPlayerElements(aiPlayer, List.of(aiMetal, aiWood, aiWater, aiEarth));
+        final var strategicAI = new StrategicAI();
+        final var aiPlayer = new AIPlayer("AI", strategicAI, List.of(aiMetal, aiWood, aiWater, aiEarth));
 
         final var game = new Game(human, aiPlayer);
         game.selectElement(human, rivalFire);
 
-        final var visitor = new ChooseElementVisitor(game);
-        final var chosen = visitor.visit(new StrategicAI());
+        final var chosen = strategicAI.chooseElement(game);
 
         assertSame(aiWater, chosen);
     }
 
     @Test
     void testSuperAIChoosesWorstGlobalOptionWhenRivalElementIsNull() {
-        final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new SuperAI());
-
         // Human has only Fire
         final var humanFire = new Element(new FireElement());
-        setPlayerElements(human, List.of(humanFire));
+        final var human = new HumanPlayer("Player", List.of(humanFire));
 
         // Against Human's Fire:
         // - AI Water: dealt 60, received 20 -> totalDamage = +40
         // - AI Metal: dealt 20, received 60 -> totalDamage = -40 (worst global value)
         final var aiWater = new Element(new WaterElement());
         final var aiMetal = new Element(new MetalElement());
-        setPlayerElements(aiPlayer, List.of(aiWater, aiMetal));
+        final var superAI = new SuperAI();
+        final var aiPlayer = new AIPlayer("AI", superAI, List.of(aiWater, aiMetal));
 
         final var game = new Game(human, aiPlayer);
-        final var visitor = new ChooseElementVisitor(game);
 
-        assertSame(aiMetal, visitor.visit(new SuperAI()));
+        assertSame(aiMetal, superAI.chooseElement(game));
     }
 
     @Test
     void testSuperAIChoosesFatalElementWithMinimumGlobalValue() {
-        final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new SuperAI());
-
         // Rival Fire has 35 energy left (so both Fire [35 dmg] and Water [60 dmg] can deal fatal damage)
         final var rivalFire = new Element(new FireElement());
         rivalFire.getDamaged(65);
         final var humanEarth = new Element(new EarthElement());
-        setPlayerElements(human, List.of(rivalFire, humanEarth));
+        final var human = new HumanPlayer("Player", List.of(rivalFire, humanEarth));
 
         // Global value against [Fire, Earth]:
         // - AI Water: vs Fire (+40), vs Earth (-40) -> totalDamage = 0
         // - AI Fire:  vs Fire (0),   vs Earth (-10) -> totalDamage = -10 (smaller global value!)
         final var aiWater = new Element(new WaterElement());
         final var aiFire = new Element(new FireElement());
-        setPlayerElements(aiPlayer, List.of(aiWater, aiFire));
+        final var superAI = new SuperAI();
+        final var aiPlayer = new AIPlayer("AI", superAI, List.of(aiWater, aiFire));
 
         final var game = new Game(human, aiPlayer);
         game.selectElement(human, rivalFire);
 
-        final var visitor = new ChooseElementVisitor(game);
-        final var chosen = visitor.visit(new SuperAI());
+        final var chosen = superAI.chooseElement(game);
 
         assertSame(aiFire, chosen);
     }
 
     @Test
     void testSuperAIChoosesMaxDamageAndBreaksTiesByMinimumGlobalValueWhenNoFatalOption() {
-        final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new SuperAI());
-
         // Rival Fire has full 100 energy (no single attack is fatal)
         final var rivalFire = new Element(new FireElement());
         final var humanWater = new Element(new WaterElement());
-        setPlayerElements(human, List.of(rivalFire, humanWater));
+        final var human = new HumanPlayer("Player", List.of(rivalFire, humanWater));
 
         // Put weaker element (Metal: 20 dmg to Fire) first, and stronger (Earth: 40 dmg, Water: 60 dmg) after
         final var aiMetal = new Element(new MetalElement());
         final var aiEarth = new Element(new EarthElement());
         final var aiWater = new Element(new WaterElement());
-        setPlayerElements(aiPlayer, List.of(aiMetal, aiEarth, aiWater));
+        final var superAI = new SuperAI();
+        final var aiPlayer = new AIPlayer("AI", superAI, List.of(aiMetal, aiEarth, aiWater));
 
         final var game = new Game(human, aiPlayer);
         game.selectElement(human, rivalFire);
 
-        final var visitor = new ChooseElementVisitor(game);
-        assertSame(aiWater, visitor.visit(new SuperAI()));
+        assertSame(aiWater, superAI.chooseElement(game));
     }
 
     @Test
     void testSuperAIBreaksTiesByMinimumGlobalValueWhenDamagesAreEqual() {
-        final var human = new HumanPlayer("Player");
-        final var aiPlayer = new AIPlayer(new SuperAI());
-
         final var rivalFire = new Element(new FireElement());
         final var humanEarth = new Element(new EarthElement());
-        setPlayerElements(human, List.of(rivalFire, humanEarth));
+        final var human = new HumanPlayer("Player", List.of(rivalFire, humanEarth));
 
         // Custom ElementType that deals 60 damage to Fire (tying with Water),
         // but has a lower global value against [Fire, Earth] than Water
-        final var customType = new org.fornipinto.unfathomable_janken.game.element.ElementType() {
+        final var customType = new ElementType() {
             @Override
-            public <R> R accept(org.fornipinto.unfathomable_janken.game.element.ElementTypeVisitor<R> visitor) {
+            public <R> R accept(ElementTypeVisitor<R> visitor) {
                 return visitor.visit(new MetalElement());
             }
 
@@ -199,13 +175,13 @@ class ChooseElementVisitorTest {
 
         final var aiWater = new Element(new WaterElement());
         final var aiCustom = new Element(customType);
-        setPlayerElements(aiPlayer, List.of(aiWater, aiCustom));
+        final var superAI = new SuperAI();
+        final var aiPlayer = new AIPlayer("AI", superAI, List.of(aiWater, aiCustom));
 
         final var game = new Game(human, aiPlayer);
         game.selectElement(human, rivalFire);
 
-        final var visitor = new ChooseElementVisitor(game);
-        assertSame(aiCustom, visitor.visit(new SuperAI()));
+        assertSame(aiCustom, superAI.chooseElement(game));
     }
 
     @Test
@@ -218,11 +194,11 @@ class ChooseElementVisitorTest {
             new MetalElement()
         );
 
+        final var strategicAI = new StrategicAI();
+        final var superAI = new SuperAI();
+
         for (final var rivalType : allTypes) {
             for (final var energy : List.of(100, 60, 40, 35, 30, 20, 10)) {
-                final var human = new HumanPlayer("Player");
-                final var aiPlayer = new AIPlayer(new SuperAI());
-
                 final var rivalElement = new Element(rivalType);
                 if (energy < 100) {
                     rivalElement.getDamaged(100 - energy);
@@ -235,22 +211,20 @@ class ChooseElementVisitorTest {
                 );
                 final var aiDeck = allTypes.stream().map(Element::new).toList();
 
-                setPlayerElements(human, humanDeck);
-                setPlayerElements(aiPlayer, aiDeck);
+                final var human = new HumanPlayer("Player", humanDeck);
+                final var aiPlayer = new AIPlayer("AI", superAI, aiDeck);
 
                 final var game = new Game(human, aiPlayer);
                 game.selectElement(human, rivalElement);
 
-                final var visitor = new ChooseElementVisitor(game);
-
                 assertSame(
                     originalStrategicAI(game),
-                    visitor.visit(new StrategicAI()),
+                    strategicAI.chooseElement(game),
                     "StrategicAI mismatch for rival=" + rivalType.getClass().getSimpleName()
                 );
                 assertSame(
                     originalSuperAI(game),
-                    visitor.visit(new SuperAI()),
+                    superAI.chooseElement(game),
                     "SuperAI mismatch for rival=" + rivalType.getClass().getSimpleName() + " energy=" + energy
                 );
             }

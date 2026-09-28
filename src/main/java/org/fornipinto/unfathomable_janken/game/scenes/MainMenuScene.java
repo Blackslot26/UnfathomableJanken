@@ -2,6 +2,8 @@ package org.fornipinto.unfathomable_janken.game.scenes;
 
 import org.fornipinto.unfathomable_janken.game.ai.*;
 import org.fornipinto.unfathomable_janken.game.player.AIPlayer;
+import org.fornipinto.unfathomable_janken.game.player.NameGenerator;
+import org.fornipinto.unfathomable_janken.game.player.DictionaryBasedNameGenerator;
 import org.fornipinto.unfathomable_janken.ui.core.*;
 import org.jline.terminal.KeyEvent;
 import org.fornipinto.unfathomable_janken.engine.Engine;
@@ -11,6 +13,7 @@ import org.fornipinto.unfathomable_janken.game.player.HumanPlayer;
 import org.fornipinto.unfathomable_janken.ui.components.*;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A scene that renders the main menu.
@@ -26,8 +29,25 @@ public class MainMenuScene implements Scene {
                  ┗━┛╹ ╹╹ ╹╹ ╹┗━╸╹ ╹        \s
         """;
 
+    private final NameGenerator nameGenerator;
     private String playerName = "";
     private int selectedAIIndex = 0;
+
+    /**
+     * Creates a new {@link MainMenuScene} with the default YAML name generator.
+     */
+    public MainMenuScene() {
+        this(new DictionaryBasedNameGenerator());
+    }
+
+    /**
+     * Creates a new {@link MainMenuScene} with the specified enemy name generator.
+     *
+     * @param nameGenerator The {@link NameGenerator} used to generate names for AI opponents.
+     */
+    public MainMenuScene(NameGenerator nameGenerator) {
+        this.nameGenerator = Objects.requireNonNull(nameGenerator);
+    }
 
     private AI getSelectedAI() {
         return possibleAIs.get(selectedAIIndex);
@@ -101,7 +121,7 @@ public class MainMenuScene implements Scene {
             }
 
             final var mainPlayer = new HumanPlayer(playerName);
-            final var enemyPlayer = new AIPlayer(getSelectedAI());
+            final var enemyPlayer = new AIPlayer(nameGenerator.generateName(), getSelectedAI());
             final var game = new Game(mainPlayer, enemyPlayer);
             final var gameScene = new GameScene(game);
 

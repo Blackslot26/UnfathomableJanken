@@ -67,14 +67,24 @@ public final class Element {
     }
 
     /**
+     * Calculates the damage this element would inflict on another element without mutating its energy.
+     *
+     * @param other The target element.
+     * @return The amount of damage this element would inflict on the other element.
+     */
+    public int calculateDamageAgainst(Element other) {
+        Objects.requireNonNull(other);
+        return other.getType().accept(this.type);
+    }
+
+    /**
      * Attack another element.
      *
      * @param other The element to attack.
      * @return The amount of damage inflicted on the other element.
      */
     public int attack(Element other) {
-        Objects.requireNonNull(other);
-        final var damage = other.getType().accept(this.type);
+        final var damage = calculateDamageAgainst(other);
         other.getDamaged(damage);
         return damage;
     }
